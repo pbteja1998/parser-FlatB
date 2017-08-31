@@ -1,13 +1,29 @@
 1. Data Types
 
-Inegers and Array of Integers.
+	Integers and Array of Integers.
 
-int data, array[100];
-int sum;
+	int data, array[100];
+	int sum;
 
-All the variables have to be declared in the declblock{....} before being used
-in the codeblock{...}. Multiple variables can be declared in the statement 
-and each declaration statement ends with a semi-colon. 
+	All the variables have to be declared in the declblock{....} before being used
+	in the codeblock{...}. Multiple variables can be declared in the statement 
+	and each declaration statement ends with a semi-colon. 
+
+	declblock{
+		.....
+	}
+	codeblock{
+		.....
+	}
+
+		or
+
+	{
+		....
+	}
+	{
+		....
+	}
 
 2. Expressions
 

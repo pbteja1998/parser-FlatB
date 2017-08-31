@@ -6,6 +6,8 @@
   void yyerror (char const *s);
 %}
 
+%token DECLBLOCK
+%token CODEBLOCK
 %token NUMBER
 %token IDENTIFIER
 %token STRING
@@ -23,6 +25,8 @@
 %token EQ
 %token LEQ
 %token GEQ
+%token TRUE
+%token FALSE
 %left '+'
 %left '*'
 %left '='
@@ -33,20 +37,23 @@
 
 program:			decl_block code_block
 
-decl_block:  		'{' declaration_list '}'
+decl_block	   :  	DECLBLOCK '{' declaration_list '}'
+			   |	'{' declaration_list '}'
 
-code_block:  		'{' statement_list '}'
+code_block	   :  	CODEBLOCK '{' statement_list '}'
+			   |	'{' statement_list '}'
 
 declaration_list :  INT declarations
 
 declarations   : 	IDENTIFIER ';'
-			   | 	IDENTIFIER '[' NUMBER ']' ';'
+			   | 	IDENTIFIER '[' expr ']' ';'
+			   |    IDENTIFIER ';' declaration_list
+			   | 	IDENTIFIER '[' expr ']' ';' declaration_list
 			   | 	IDENTIFIER ',' declarations
-			   | 	IDENTIFIER '[' NUMBER ']' ',' declarations
+			   | 	IDENTIFIER '[' expr ']' ',' declarations
 
 var 		   :	IDENTIFIER
-			   |	IDENTIFIER '[' NUMBER ']'
-			   |	IDENTIFIER '[' IDENTIFIER ']'
+			   |	IDENTIFIER '[' expr ']'			   
 
 var_num 	   : 	var 
 			   | 	NUMBER
@@ -61,19 +68,20 @@ statement_list : 	statement
 			   | 	while_block statement_list
 			   | 	if_else_block statement_list
 			   | 	goto_block statement_list
-			   | 	LABEL ':' statement_list
+			   | 	LABEL statement_list
 
 statement 	   : 	var '=' expr ';'		  	   
 		  	   | 	print ';'
 		  	   | 	println ';'
 		  	   | 	read';'
-
 print 		   : 	PRINT STRING extra_values
 			   | 	PRINT STRING
 			   |	PRINT extra_values
 
-extra_values   : 	',' IDENTIFIER extra_values 
-			   | 	IDENTIFIER
+extra_values   : 	',' var extra_values 
+			   | 	',' var
+			   | 	',' STRING extra_values 
+			   | 	',' STRING 
 
 println 	   : 	PRINTLN STRING
 
@@ -87,23 +95,24 @@ while_block    : 	WHILE bool_expr '{' statement_list '}'
 if_else_block  : 	IF bool_expr '{' statement_list '}'
 			   |	IF bool_expr '{' statement_list '}' ELSE '{' statement_list '}'
 
-goto_block 	   : 	GOTO LABEL 
-		   	   | 	GOTO LABEL IF bool_expr
+goto_block 	   : 	GOTO IDENTIFIER ';'
+		   	   | 	GOTO IDENTIFIER IF bool_expr ';'
 
 expr		   : 	expr '+' expr 
-			   |	expr '*' expr 
-			   | 	NUMBER
-			   |	IDENTIFIER
+			   |	expr '-' expr
+			   |	expr '*' expr
+			   |    expr '/' expr			  
+			   | 	var_num			   
 
 bool_expr 	   : 	var_num boolOp var_num 
-		  	   | 	"true" 
-		  	   | 	"false"
+		  	   | 	TRUE
+		  	   | 	FALSE
 
 boolOp 		   : 	'<' 
 	   		   | 	'>' 
-	   		   | 	"==" 
-	   		   | 	"<=" 
-	   		   | 	">="
+	   		   | 	EQ 
+	   		   | 	LEQ
+	   		   | 	GEQ
 
 %%
 
