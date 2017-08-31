@@ -37,11 +37,9 @@
 
 program:			decl_block code_block
 
-decl_block	   :  	DECLBLOCK '{' declaration_list '}'
-			   |	'{' declaration_list '}'
+decl_block	   :  	DECLBLOCK '{' declaration_list '}'			   
 
-code_block	   :  	CODEBLOCK '{' statement_list '}'
-			   |	'{' statement_list '}'
+code_block	   :  	CODEBLOCK '{' statement_list '}'			   
 
 declaration_list :  INT declarations
 

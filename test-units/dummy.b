@@ -1,9 +1,9 @@
-{
+declblock{
 	int a, B[100];
 	int D[50], e;
 }
 
-{
+codeblock{
 	a = 0;
 	for i = 1, 10, 3 {
 		B[i] = 0;

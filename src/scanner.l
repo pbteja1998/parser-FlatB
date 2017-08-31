@@ -4,142 +4,175 @@
 
 %%
 "declblock"					{
-								printf("Token type: declblock\n");
+								
+								printf("declblock ");
 								return DECLBLOCK;	
 							}
 "codeblock"					{
-								printf("Token type: codeblock\n");
+								
+								printf("codeblock ");
 								return CODEBLOCK;	
 							}						
 "if"						{
-								printf("Token type: If\n");
+								
+								printf("if ");
 								return IF;
 							}
 "else"						{
-								printf("Token type: Else\n");
+								
+								printf("else ");
 								return ELSE;
 							}
 "true"						{	
-								printf("Token type: True\n");
+								
+								printf("true ");
 								return TRUE;
 							}
 "false"						{
-								printf("Token type: False\n");
+								
+								printf("false ");
 								return FALSE;
 							}							
 "for"						{
-								printf("Token type: For\n");
+								
+								printf("for ");
 								return FOR;
 							}
 "while"						{	
-								printf("Token type: While\n");
+								
+								printf("while ");
 								return WHILE;
 							}
 "goto"						{
-								printf("Token type: Goto\n");
+								
+								printf("goto ");
 								return GOTO;
 							}
 "int"						{
-								printf("Token type: Int\n");
+								
+								printf("\tint ");
 								return INT;
 							}
 "print"						{	
-								printf("Token type: print\n");
+								
+								printf("print ");
 								return PRINT;
 							}
 "println"					{
-								printf("Token type: Println\n");
+								
+								printf("println ");
 								return PRINTLN;
 							}
 "read"						{
-								printf("Token type: read\n");
+								
+								printf("read ");
 								return READ;
 							}
 [0-9][0-9]*  				{
-								printf("Token type: Number Lexeme/Token Value: %s\n", yytext);
+								
+								printf("(NUMBER)%s ", yytext);
 								return NUMBER;
 							}
 [a-zA-Z][a-zA-Z0-9]*		{
-								printf("Token type: IDENTIFIER Lexeme/Token Value: %s\n", yytext);
+								
+								printf("(IDENTIFIER)%s ", yytext);
 								return IDENTIFIER;
 							}
 ["][a-zA-Z0-9:,\ ]*["]		{	
-								printf("Token type: STRING Lexeme/Token Value: %s\n", yytext);
+								
+								printf("(STRING)%s ", yytext);
 								return STRING;
 							}
 [a-zA-Z][a-zA-Z0-9]*[\ ]*[:]		{	
-								printf("Token type: LABEL Lexeme/Token Value: %s\n", yytext);
+								
+								printf("(LABEL)%s ", yytext);
 								return LABEL;
 							}
 "\""						{
-								printf("Token type: \" Lexeme/Token Value: %s\n", yytext);
+								
+								printf("\" ");
 								return '"';
 							}
 "+"							{
-								printf("Token type: + Lexeme/Token Value: %s\n", yytext);
+								
+								printf("+ ");
 								return '+';
 							}
 "-"							{
-								printf("Token type: - Lexeme/Token Value: %s\n", yytext);
+								
+								printf("- ");
 								return '-';
 							}
 "*"							{
-								printf("Token type: * Lexeme/Token Value: %s\n", yytext);
+								
+								printf("* ");
 								return '*';
 							}
 "<"							{	
-								printf("Token type: < Lexeme/Token Value: %s\n", yytext);
+								
+								printf("< ");
 								return '<';
 							}
 ">"							{
-								printf("Token type: > Lexeme/Token Value: %s\n", yytext);
+								
+								printf("> ");
 								return '>';
 							}
 "="							{
-								printf("Token type: = Lexeme/Token Value: %s\n", yytext);
+								
+								printf("= ");
 								return '=';
 							}
 "=="						{	
-								printf("Token type: == Lexeme/Token Value: %s\n", yytext);
+								
+								printf("== ");
 								return EQ;
 							}
 "<="						{
-								printf("Token type: <= Lexeme/Token Value: %s\n", yytext);
+								
+								printf("<= ");
 								return LEQ;
 							}
 ">="						{
-								printf("Token type: >= Lexeme/Token Value: %s\n", yytext);
+								
+								printf(">= ");
 								return GEQ;
 							}
 "{"							{
-								printf("Token type: { Lexeme/Token Value: %s\n", yytext);
+								
+								printf("{\n");
 								return '{';
 							}
 "}"							{
-								printf("Token type: } Lexeme/Token Value: %s\n", yytext);
+								
+								printf("\n}\n");
 								return '}';
 							}
 "["							{
-								printf("Token type: [ Lexeme/Token Value: %s\n", yytext);
+								
+								printf("[ ");
 								return '[';
 							}
 "]"							{
-								printf("Token type: ] Lexeme/Token Value: %s\n", yytext);
+								
+								printf("] ");
 								return ']';
 							}
 ","							{
-								printf("Token type: , Lexeme/Token Value: %s\n", yytext);
+								
+								printf(", ");
 								return ',';	
 							}
 ";"							{
-								printf("Token type: ; Lexeme/Token Value: %s\n", yytext);
+								
+								printf(";");
 								return ';';	
 							}
-[\t \n][\t \n]*				{
-								printf("Token type: space or tab Lexeme/Token Value: %s\n", yytext);
+[\t  ][\t  ]*				{								
 								/*Do nothing*/;
 							}
 .							{
-								printf("Token type: ETOK Lexeme/Token Value: %s\n", yytext);
+								
+								printf("ETOK ");
 								return ETOK;
 							}
