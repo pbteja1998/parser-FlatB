@@ -13,39 +13,47 @@ and each declaration statement ends with a semi-colon.
 
 3. for loop
 
-for i = 1, 100 {
-	.....
-}
+	for i = 1, 100 {
+		.....
+	}
 
-for i = 1, 100, 2 {
-	.....
-}
+	for i = 1, 100, 2 {
+		.....
+	}
+
+	for i = a, b, c {
+		......
+	}
+
+	for i = A[0], B[k], c {
+		
+	}
 
 4. if-else statement
 
-	if expression {
+	if boolean_expression {
 	....
 	}
 	....
 
-	if expression {
+	if boolean_expression {
 	...
 	}
 	else {
 	....
 	}
 
-5. while statment
+5. while statement
 
-	while expression {
+	while boolean_expression {
 
 	}
 
 6. conditional and unconditional goto
 
-	got label
+	goto label
 
-	goto label if expression
+	goto label if boolean_expression
 
 7. print/read
 
@@ -53,3 +61,12 @@ for i = 1, 100, 2 {
 	println "new line at the end"
 	read sum
 	read data[i]
+
+8. boolean_expression
+	a < b
+	a > b
+	a <= b
+	a >= b
+	a == b
+	true
+	false
