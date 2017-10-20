@@ -1,5 +1,11 @@
 %{
+#include <bits/stdc++.h>
+#include "ClassDefs.h"
 #include "parser.tab.h"
+#define YY_DECL extern "C" int yylex()
+	extern union Node yylval;
+	using namespace std;
+	int line_num = 0;
 %}
 digit [0-9]
 alpha [a-zA-Z]

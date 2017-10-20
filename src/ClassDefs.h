@@ -1,18 +1,49 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-enum ExprType { boolean = 1, normal = 2 }
-enum StatementType { assignment = 1, forStmt = 2, ifStmt = 3, ifElseStmt = 4, whileStmt = 5, goToStmt = 6, labeled =  7 }
+enum VarType {normalVar = 1, array = 2};
+enum ExprType { boolean = 1, normal = 2, binary = 3, unary = 4};
+enum StatementType { assignment = 1, forStmt = 2, ifStmt = 3, ifElseStmt = 4, whileStmt = 5, goToStmt = 6, labeled =  7 };
 
-/* --------- Main Program -------- */
 
-class Program:public AstNode {
-	private:
-		class Vars* vars;
-		class Statements* statements;
-	public:
-		Program(class varDecl*, class statDecl*);
-}
+union Node{
+	int number;
+	char* value;
+	class Program* program;
+	class Vars* vars;
+	class Var* var;
+	class Expr* expr;
+	class Statements* statements;
+	class Statement* statement;
+	class Assignment* assignment;
+	class LHS* lhs; 
+	class BoolExpr* bool_expr;
+	class Block* block;
+
+	Node(){
+		number = 0;
+		value = NULL;
+		vars = NULL;
+		var = NULL;
+		expr = NULL;
+		statements = NULL;
+		statement = NULL;
+		assignment = NULL;
+		lhs = NULL;
+		bool_expr = NULL;
+		block = NULL;
+	}
+	~Node(){};
+};
+
+typedef union Node YYSTYPE;
+
+#define YYSTYPE_IS_DECLARED 1
+
+class AstNode {
+
+};
+
 
 
 /* --------- Variables --------- */
@@ -21,145 +52,186 @@ class Vars:public AstNode {
 		vector<class Var*> var_list;
 		int count;
 	public:
-		varDecls();
-		void push_back(class Var*);		
-}
+		Vars();
+		Vars(class Vars*);		
+		void pushes_back(class Var*);	
+		void pushes_back(class Vars*);	
+};
 
 class Var:public AstNode {
-	private:
-		string type; /* Array or Int */
-		string name; /* Name of the var */
-		unsigned int length; /* If it is array, then length of array */
+	private:		
 	public:
-		Var(string, string, unsigned int);
-		Var(string, string);
+		string name; /* Name of the var */
+		unsigned int length; /* If it is array, then length of array */	
+		enum VarType vtype; /* Array or Int */
+		Var(enum VarType, string, class Expr*);
+		Var(enum VarType, string);
+		Var(string);
 		bool isArray();		
-}
+};
  
 /* --------- Statements ------------ */
 class Statements:public AstNode {
 	private:
-		vector<class Statement*> statements;
+		vector<class Statement*> statement_list;
 		int count;
 	public:
 		Statements();
-		void push_back(class Statement*);
-}
+		void pushes_back(class Statement*);
+		vector<class Statement*> getStmtList();
+		void setStmtList(vector<class Statement*>);
+};
 
 class Statement:public AstNode {
 	private:
-		StatementType stype; /* Assignment, For, While, GoTo, If, If Else */
+		
 	public:
-		Statement(StatementType);
-}
+		StatementType stype; /* Assignment, For, While, GoTo, If, If Else */		
+		Statement();
+};
+
+/* --------- Main Program -------- */
+
+class Program:public AstNode {
+	private:
+	public:
+		class Vars* vars;
+		class Statements* statements;
+		Program(class Vars*, class Statements*);
+};
 
 /* ------------ LHS -----------*/
 class LHS:public Var {
 	private:
-		int index; /* If LHS is array, then index of array */
 	public:
-		LHS(string, string, index);
+		int index; /* If LHS is array, then index of array */
+		int value;
+		LHS(string, Expr*);
 		LHS(string);
-}
+};
 
 /* ----- Assignment Statement ------ */
 
 class Assignment:public Statement {
 	private:
+	public:
 		class LHS* lhs; /* LHS of assignment statement */
 		class Expr* expr; /* RHS of assignment statement */
 		string Op; /* = (At Present), (In future, += , -=) */
-	public:
-		Assignment(class LHS*, string, class Expr*)
-}
+		Assignment(class LHS*, string, class Expr*);
+};
 
 /* ------ Block -------- */
 
 class Block:public Statements {
 	public:
-		Block();	
-}
+		Block(class Statements*);	
+};
 
 /* ----- For Statement -------- */
 
 class ForStatement:public Statement {
 	private:
+	public:
 		LHS* var;  /* var which is being looped */
 		class Expr* start;  /* Initial Value */
 		class Expr* end;    /* Final Value */
 		class Expr* step;   /* Step Value */
 		class Block* forBlock; /* For Block */
-	public:
-		ForStatement(LHS*, Expr*, Expr*, Expr*, Block*)
-}
+		ForStatement(LHS*, Expr*, Expr*, Block*);
+		ForStatement(LHS*, Expr*, Expr*, Expr*, Block*);
+};
 
 /*-------- While Statement -------- */
 
 class WhileStatement:public Statement {
 	private:
+	public:
 		class BoolExpr* cond; /* Condition */
 		class Block* whileBlock;
-	public:
 		WhileStatement(BoolExpr*, Block*);
-}
+};
 
 /* -------- If Statement ----------- */
 
 class IfStatement:public Statement {
 	private:
+	public:
 		class BoolExpr* cond;  /* condition */
 		class Block* ifBlock;      /* If Block */
-	public:
-		IfStatement(BoolExpr*, Block*);
-}
+		IfStatement(BoolExpr*, Block*, Block*);
+};
 
 /* -------- If Else Statement ---------- */
 
 class IfElseStatement:public IfStatement {
 	private:
-		class Block* elseBlock;
 	public:
+		class Block* elseBlock;
 		IfElseStatement(BoolExpr*, Block*, Block*);
-}
+};
 
 /* ---------- GoTo Statement ------------ */
 
 class GoToStatement:public Statement {
 	private:
-		class LabeledStatement* lbdStmt;
-		class BoolExpr* cond; /* If Conditional Goto */
 	public:
-		GoToStatement(LabeledStatement*, BoolExpr*);
-		GoToStatement(LabeledStatement*);
-}
+		string label;
+		class BoolExpr* cond; /* If Conditional Goto */
+		GoToStatement(string, BoolExpr*);
+		GoToStatement(string);
+};
 
 /* ------ Labeled Statement ------------ */
 class LabeledStatement:public Statement {
 	private:
-		class Label* label;
 	public:
-		LabeledStatement(Label*);
-}
+		string label;
+		LabeledStatement(string);
+};
 
 class Label:public Var {
 
-}
+};
 
 /* ------- Expressions ---------- */
 
 class Expr:public AstNode {
-	private:
-		ExprType etype; /* Boolean or not */
+	private:		
 		string expr;    /* Expression as String */
 		int value;      /* evaluated value */
 
 	public:
+		ExprType etype; /* Boolean, normal, binary, unary */
 		Expr(string, ExprType);
-}
+		Expr(int);
+		Expr(LHS*);
+		int getVal();
+		void setVal(int);
+};
 
-class BooleanExpr:public Expr {
+class BinaryExpr:public Expr {
 	private:
-		bool val; /* True or False (after Evaluation)*/
+		
 	public:
-		BooleanExpr();
-}
+		class Expr* first;
+		string Op;
+		class Expr * second;
+		BinaryExpr(class Expr*, string, class Expr* );
+};
+
+class BoolExpr:public BinaryExpr {
+	private:
+	public:
+		bool val; /* True or False (after Evaluation)*/		
+		BoolExpr(class Expr*, string Op, class Expr*);
+		BoolExpr(bool);
+};
+
+class UnaryExpr:public Expr {
+	private:		
+	public:
+		string Op;
+		class Expr* second;
+		UnaryExpr(string, class Expr* );
+};
