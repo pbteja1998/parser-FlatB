@@ -10,7 +10,7 @@ codeblock{
 		B[i-1] = 1;
 	}
 
-L1 :	while false {
+L1:	while false {
 		a = a + 1;
 	}
 
@@ -23,7 +23,7 @@ L1 :	while false {
 		B[0] = B[0] + 1;
 	}
 
-	print "Hi, this is test program", a, "check this", A[0];
+	print "Hi, this is test program", a, A[0];
 
 	println "This is a new line";
 

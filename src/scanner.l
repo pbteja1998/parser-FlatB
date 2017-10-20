@@ -1,178 +1,160 @@
 %{
 #include "parser.tab.h"
 %}
-
+digit [0-9]
+alpha [a-zA-Z]
+alphaNumeric [0-9a-zA-Z]
+delimiter [ \t]+
+string (\\n|\\t|\\'|\\\\|\\\"|[^\\"'])
 %%
-"declblock"					{
-								
+"declblock"					{															
 								printf("declblock ");
-								return DECLBLOCK;	
+								return DLB;	
 							}
-"codeblock"					{
-								
+"codeblock"					{								
 								printf("codeblock ");
-								return CODEBLOCK;	
+								return CDB;	
 							}						
-"if"						{
-								
+"if"						{								
 								printf("if ");
 								return IF;
 							}
-"else"						{
-								
+"else"						{								
 								printf("else ");
 								return ELSE;
 							}
-"true"						{	
-								
+"true"						{									
 								printf("true ");
 								return TRUE;
 							}
-"false"						{
-								
+"false"						{								
 								printf("false ");
 								return FALSE;
 							}							
-"for"						{
-								
+"for"						{								
 								printf("for ");
 								return FOR;
 							}
-"while"						{	
-								
+"while"						{									
 								printf("while ");
 								return WHILE;
 							}
-"goto"						{
-								
+"goto"						{								
 								printf("goto ");
 								return GOTO;
 							}
-"int"						{
-								
+"int"						{								
 								printf("\tint ");
 								return INT;
 							}
-"print"						{	
-								
+"print"						{									
 								printf("print ");
 								return PRINT;
 							}
-"println"					{
-								
+"println"					{								
 								printf("println ");
 								return PRINTLN;
 							}
-"read"						{
-								
+"read"						{								
 								printf("read ");
 								return READ;
 							}
-[0-9][0-9]*  				{
-								
+{digit}+ 					{ 
 								printf("(NUMBER)%s ", yytext);
-								return NUMBER;
+								return NUM; 
+							}							
+{alpha}{alphaNumeric}* 		{ 
+								printf("(ID)%s ", yytext);
+								return ID; 
 							}
-[a-zA-Z][a-zA-Z0-9]*		{
-								
-								printf("(IDENTIFIER)%s ", yytext);
-								return IDENTIFIER;
-							}
-["][a-zA-Z0-9:,\ ]*["]		{	
-								
-								printf("(STRING)%s ", yytext);
-								return STRING;
-							}
-[a-zA-Z][a-zA-Z0-9]*[\ ]*[:]		{	
-								
+{alpha}{alphaNumeric}*[:]	{									
 								printf("(LABEL)%s ", yytext);
 								return LABEL;
+							}														
+\"{string}*\" 				{ 
+								printf("(STRING)%s ", yytext);
+								return STRING; 
 							}
 "\""						{
-								
-								printf("\" ");
-								return '"';
+								printf("\"");
+								return ICOMMA;
 							}
 "+"							{
-								
-								printf("+ ");
-								return '+';
+								printf("+");
+								return ADD;
 							}
 "-"							{
-								
-								printf("- ");
-								return '-';
+								printf("-");
+								return SUB;
 							}
-"*"							{
-								
-								printf("* ");
-								return '*';
+"*"							{								
+								printf("*");
+								return MUL;
 							}
-"<"							{	
-								
-								printf("< ");
-								return '<';
+"/"							{								
+								printf("/");
+								return DIV;
+							}							
+"<"							{									
+								printf("<");
+								return LT;
 							}
 ">"							{
-								
-								printf("> ");
-								return '>';
+								printf(">");
+								return GT;
 							}
-"="							{
-								
-								printf("= ");
-								return '=';
-							}
-"=="						{	
-								
-								printf("== ");
+"="							{								
+								printf("=");
 								return EQ;
 							}
-"<="						{
-								
-								printf("<= ");
+"=="						{									
+								printf("==");
+								return EQUAL;
+							}
+"!="						{									
+								printf("!=");
+								return NOT_EQUAL;
+							}							
+"<="						{								
+								printf("<=");
 								return LEQ;
 							}
 ">="						{
-								
-								printf(">= ");
+								printf(">=");
 								return GEQ;
 							}
-"{"							{
-								
-								printf("{\n");
-								return '{';
+"{"							{			
+								printf("{");					
+								return OB;
 							}
-"}"							{
-								
-								printf("\n}\n");
-								return '}';
+"}"							{			
+								printf("}");													
+								return CB;
 							}
-"["							{
-								
-								printf("[ ");
-								return '[';
+"["							{			
+								printf("[");				
+								return OSB;
 							}
-"]"							{
-								
-								printf("] ");
-								return ']';
+"]"							{			
+								printf("]");													
+								return CSB;
 							}
-","							{
-								
-								printf(", ");
-								return ',';	
+","							{			
+								printf(",");													
+								return COMMA;	
 							}
-";"							{
-								
-								printf(";");
-								return ';';	
+";"							{			
+								printf(";");													
+								return SC;	
 							}
-[\t  ][\t  ]*				{								
+{delimiter}					{								
 								/*Do nothing*/;
 							}
-.							{
-								
+"\n" 						{ 
+								 printf("\n");
+							}							
+.							{								
 								printf("ETOK ");
 								return ETOK;
 							}
+%%

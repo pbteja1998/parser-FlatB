@@ -5,133 +5,100 @@
   int yylex (void);
   void yyerror (char const *s);
 %}
+/*	-------------  Tokens ----------------------*/
+%start Program
 
-%token DECLBLOCK
-%token CODEBLOCK
-%token NUMBER
-%token IDENTIFIER
-%token STRING
+%token DLB CDB
+%token IF ELSE FOR WHILE GOTO
+%token ICOMMA COMMA SC
+%token TRUE FALSE INT
+%token PRINT PRINTLN READ
+%token ID STRING LABEL
+%token NUM
+%token ADD SUB MUL DIV
+%token LT GT LEQ GEQ EQ
+%token EQUAL NOT_EQUAL
+%token OB CB OSB CSB
 %token ETOK
-%token IF
-%token ELSE
-%token FOR
-%token WHILE
-%token GOTO
-%token INT
-%token LABEL
-%token PRINT
-%token PRINTLN
-%token READ
-%token EQ
-%token LEQ
-%token GEQ
-%token TRUE
-%token FALSE
-%left '+'
-%left '*'
-%left '='
-%left '>'
-%left '<'
+
+/* --------------- Left Precedence ---------------*/
+%left EQUAL NOT_EQUAL
+%left LT GT LEQ GEQ
+%left ADD SUB MUL DIV
 
 %%
 
-program:			decl_block code_block
+Program			: Decl_Block Code_Block
 
-decl_block	   :  	DECLBLOCK '{' declaration_list '}'			   
+Decl_Block		: DLB OB Decl_List CB
 
-code_block	   :  	CODEBLOCK '{' statement_list '}'			   
+Decl_List		: INT Vars SC
+				| Decl_List INT Vars SC
 
-declaration_list :  INT declarations
+Vars 			: Var
+				| Vars COMMA Var
 
-declarations   : 	IDENTIFIER ';'
-			   | 	IDENTIFIER '[' expr ']' ';'
-			   |    IDENTIFIER ';' declaration_list
-			   | 	IDENTIFIER '[' expr ']' ';' declaration_list
-			   | 	IDENTIFIER ',' declarations
-			   | 	IDENTIFIER '[' expr ']' ',' declarations
+Var 			: ID
+				| ID OSB Expr CSB
 
-var 		   :	IDENTIFIER
-			   |	IDENTIFIER '[' expr ']'			   
+Code_Block		: CDB OB Stat_List CB
 
-var_num 	   : 	var 
-			   | 	NUMBER
+Stat_List		: Stat_List Statement
+				| Statement
 
-statement_list : 	statement	   
-			   | 	for_block			   
-			   | 	while_block			   
-			   | 	if_else_block			   
-			   | 	goto_block
-			   |	statement statement_list
-			   | 	for_block statement_list
-			   | 	while_block statement_list
-			   | 	if_else_block statement_list
-			   | 	goto_block statement_list
-			   | 	LABEL statement_list
+Statement		: Assignment
+				| LABEL Statement
+				| IF Boolean_Expr Block
+				| IF Boolean_Expr Block ELSE Block
+				| FOR ID EQ Expr COMMA Expr Block
+				| FOR ID EQ Expr COMMA Expr COMMA Expr Block
+				| WHILE Boolean_Expr Block
+				| GOTO ID SC
+				| GOTO ID IF Boolean_Expr SC
+				| PRINT STRING SC
+				| PRINT STRING COMMA Vars SC
+				| PRINTLN STRING SC
+				| READ Var SC
 
-statement 	   : 	var '=' expr ';'		  	   
-		  	   | 	print ';'
-		  	   | 	println ';'
-		  	   | 	read';'
-print 		   : 	PRINT STRING extra_values
-			   | 	PRINT STRING
-			   |	PRINT extra_values
+Assignment		: Var EQ Expr SC
 
-extra_values   : 	',' var extra_values 
-			   | 	',' var
-			   | 	',' STRING extra_values 
-			   | 	',' STRING 
+Expr 			: Var
+				| Expr ADD Expr
+				| Expr SUB Expr
+				| Expr MUL Expr
+				| Expr DIV Expr
+				| SUB Expr
+				| Boolean_Expr
+				| NUM
 
-println 	   : 	PRINTLN STRING
+Boolean_Expr	: TRUE
+				| FALSE
+				| Expr GT Expr
+				| Expr LT Expr
+				| Expr LEQ Expr
+				| Expr GEQ Expr
+				| Expr EQUAL Expr
+				| Expr NOT_EQUAL Expr
 
-read 		   : 	READ var			   
-
-for_block 	   : 	FOR IDENTIFIER '=' var_num ',' var_num '{' statement_list '}'
-	      	   | 	FOR IDENTIFIER '=' var_num ',' var_num ',' var_num '{' statement_list '}'
-
-while_block    : 	WHILE bool_expr '{' statement_list '}'
-
-if_else_block  : 	IF bool_expr '{' statement_list '}'
-			   |	IF bool_expr '{' statement_list '}' ELSE '{' statement_list '}'
-
-goto_block 	   : 	GOTO IDENTIFIER ';'
-		   	   | 	GOTO IDENTIFIER IF bool_expr ';'
-
-expr		   : 	expr '+' expr 
-			   |	expr '-' expr
-			   |	expr '*' expr
-			   |    expr '/' expr			  
-			   | 	var_num			   
-
-bool_expr 	   : 	var_num boolOp var_num 
-		  	   | 	TRUE
-		  	   | 	FALSE
-
-boolOp 		   : 	'<' 
-	   		   | 	'>' 
-	   		   | 	EQ 
-	   		   | 	LEQ
-	   		   | 	GEQ
+Block 			: OB Stat_List CB
 
 %%
+
 
 void yyerror (char const *s)
 {
        fprintf (stderr, "%s\n", s);
 }
-
 int main(int argc, char *argv[])
 {
 	if (argc == 1 ) {
 		fprintf(stderr, "Correct usage: bcc filename\n");
 		exit(1);
 	}
-
 	if (argc > 2) {
 		fprintf(stderr, "Passing more arguments than necessary.\n");
 		fprintf(stderr, "Correct usage: bcc filename\n");
 	}
-
 	yyin = fopen(argv[1], "r");
-
 	yyparse();
 }
