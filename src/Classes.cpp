@@ -2,7 +2,7 @@
 #include "ClassDefs.h"
 using namespace std;
 
-Program::Program(class Vars* vars, class Statememts* statements)
+Program::Program(class Vars* vars, class Statements* statements)
 {
 	this->vars = vars;
 	this->statements = statements;
@@ -56,7 +56,12 @@ bool Var::isArray()
 	return 0;
 }
 
-void Statememts::pushes_back(class Statememt* statement)
+Statements::Statements()
+{
+
+}
+
+void Statements::pushes_back(class Statement* statement)
 {
 	(this->statement_list).push_back(statement);
 }
@@ -140,6 +145,27 @@ GoToStatement::GoToStatement(string label, BoolExpr* expr)
 {
 	this->label = label;
 	this->cond = expr;
+}
+
+PrintStatement::PrintStatement(string text)
+{
+	this->text = text;
+}
+
+PrintStatement::PrintStatement(string text, class Vars* vars)
+{
+	this->text = text;
+	this->vars = vars;
+}
+
+PrintLnStatement::PrintLnStatement(string text)
+{
+	this->text = text;
+}
+
+ReadStatement::ReadStatement(class Var* var)
+{
+	this->var = var;
 }
 
 NormalExpr::NormalExpr(int value)

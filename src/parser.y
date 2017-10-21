@@ -93,10 +93,10 @@ Statement		: Assignment { $$ = $1; }
 				| WHILE Boolean_Expr Block { $$ = new WhileStatement($2, $3); }
 				| GOTO ID SC { $$ = new GoToStatement($2); }
 				| GOTO ID IF Boolean_Expr SC { $$ = new GoToStatement($2, $4); }
-				| PRINT STRING SC
-				| PRINT STRING COMMA Vars SC
-				| PRINTLN STRING SC
-				| READ Var SC
+				| PRINT STRING SC { $$ = new PrintStatement($2); }
+				| PRINT STRING COMMA Vars SC { $$ = new PrintStatement($2, $4); }
+				| PRINTLN STRING SC { $$ = new PrintLnStatement($2); }
+				| READ Var SC { $$ = new ReadStatement($2); }
 				;
 
 
@@ -113,7 +113,7 @@ Expr 			: Lhs 	{ $$ = new NormalExpr($1); }
 				| Expr DIV Expr { $$ = new BinaryExpr($1, $2, $3); }
 				| SUB Expr { $$ = new UnaryExpr($1, $2); }
 				| Boolean_Expr { $$ = $1; }
-				| NUM
+				| NUM { $$ = new NormalExpr($1); }
 				;
 
 

@@ -23,6 +23,7 @@ union Node{
 	Node(){
 		number = 0;
 		value = NULL;
+		program = NULL;
 		vars = NULL;
 		var = NULL;
 		expr = NULL;
@@ -57,6 +58,9 @@ class IfStatement;
 class IfElseStatement;
 class GoToStatement;
 class LabeledStatement;
+class PrintStatement;
+class PrintLnStatement;
+class ReadStatement;
 
 class Label;
 class Expr;
@@ -111,6 +115,7 @@ class Statements:public AstNode {
 		vector<class Statement*> statement_list;
 		int count;
 	public:
+		Statements();
 		void pushes_back(class Statement*);
 		vector<class Statement*> getStmtList();
 		void setStmtList(vector<class Statement*>);
@@ -223,6 +228,32 @@ class LabeledStatement:public Statement {
 
 class Label:public Var {
 
+};
+
+/* ------- Print Statement --------- */
+class PrintStatement:public Statement {
+	private:
+	public:
+		string text;
+		class Vars* vars;
+		PrintStatement(string);
+		PrintStatement(string, class Vars*);
+};
+
+/* ------- PrintLn Statement --------- */
+class PrintLnStatement:public Statement {
+	private:
+	public:
+		string text;
+		PrintLnStatement(string);
+};
+
+/* ------- Read Statement --------- */
+class ReadStatement:public Statement {
+	private:
+	public:
+		class Var* var;
+		ReadStatement(class Var*);
 };
 
 /* ------- Expressions ---------- */
