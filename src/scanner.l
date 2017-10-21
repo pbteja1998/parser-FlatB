@@ -5,7 +5,6 @@
 #define YY_DECL extern "C" int yylex()
 	extern union Node yylval;
 	using namespace std;
-	int line_num = 0;
 %}
 digit [0-9]
 alpha [a-zA-Z]
@@ -157,7 +156,7 @@ string (\\n|\\t|\\'|\\\\|\\\"|[^\\"'])
 								/*Do nothing*/;
 							}
 "\n" 						{ 
-								 printf("\n");
+								printf("\n");
 							}							
 .							{								
 								printf("ETOK ");

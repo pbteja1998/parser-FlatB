@@ -5,12 +5,9 @@
   extern "C" int yylex();
   extern "C" int yyparse();
   extern "C" FILE *yyin;
-  extern "C" int line_num;
   extern union Node yylval;
-  extern "C" int errors;
   void yyerror(const char *s);
   class Program* start = NULL;
-  int errors=0;
 %}
 /*	-------------  Tokens ----------------------*/
 %start Program
@@ -109,7 +106,7 @@ Assignment		: Lhs EQ Expr SC { $$ = new Assignment($1, $2, $3); }
 Lhs				: ID { $$ = new LHS($1); }
 				| ID OSB Expr CSB { $$ = new LHS($1, $3); }
 
-Expr 			: Lhs 	{ $$ = new Expr($1); }
+Expr 			: Lhs 	{ $$ = new NormalExpr($1); }
 				| Expr ADD Expr { $$ = new BinaryExpr($1, $2, $3); }
 				| Expr SUB Expr { $$ = new BinaryExpr($1, $2, $3); }
 				| Expr MUL Expr { $$ = new BinaryExpr($1, $2, $3); }

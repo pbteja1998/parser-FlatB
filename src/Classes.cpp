@@ -56,9 +56,9 @@ bool Var::isArray()
 	return 0;
 }
 
-void Statememts::pushes_back(class Statememt* st)
+void Statememts::pushes_back(class Statememt* statement)
 {
-	(this->statement_list).push_back(st);
+	(this->statement_list).push_back(statement);
 }
 
 void Statements::setStmtList(vector<class Statement*> statement_list)
@@ -93,7 +93,7 @@ LHS::LHS(string name, Expr* expr)
 	this->vtype = vtype;
 }
 
-IfStatement::IfStatement(BoolExpr* bool_expr, Block* block, Block* b = NULL)
+IfStatement::IfStatement(BoolExpr* bool_expr, Block* block)
 {
 	this->cond = bool_expr;
 	this->ifBlock = block;
@@ -111,7 +111,7 @@ ForStatement::ForStatement(LHS* lhs, Expr* start, Expr* end, Block* block)
 	this->var = lhs;
 	this->start = start;
 	this->end = end;
-	this->step = new Expr(1);
+	this->step = new NormalExpr(1);
 	this->forBlock = block;
 }
 
@@ -142,16 +142,16 @@ GoToStatement::GoToStatement(string label, BoolExpr* expr)
 	this->cond = expr;
 }
 
-Expr::Expr(int value)
+NormalExpr::NormalExpr(int value)
 {
-	this->value = value;
+	this->setVal(value);
 	enum ExprType type = normal;
 	this->etype = type;
 }
 
-Expr::Expr(LHS* lhs)
+NormalExpr::NormalExpr(LHS* lhs)
 {
-	this->value = lhs->value;
+	this->setVal(lhs->value);
 	enum ExprType type = normal;
 	this->etype = type;
 }
@@ -161,7 +161,7 @@ int Expr::getVal()
 	return this->value;
 }
 
-void Expr::getVal(int value)
+void Expr::setVal(int value)
 {
 	this->value = value;
 }

@@ -40,6 +40,34 @@ typedef union Node YYSTYPE;
 
 #define YYSTYPE_IS_DECLARED 1
 
+/*---------- Classes -------------- */
+class AstNode;
+class Program;
+class Vars;
+class Var;
+class Statements;
+class LHS;
+class Block;
+
+class Statement;
+class Assignment;
+class ForStatement;
+class WhileStatement;
+class IfStatement;
+class IfElseStatement;
+class GoToStatement;
+class LabeledStatement;
+
+class Label;
+class Expr;
+class BoolExpr;
+class BinaryExpr;
+class UnaryExpr;
+class NormalExpr;
+
+
+
+
 class AstNode {
 
 };
@@ -71,23 +99,21 @@ class Var:public AstNode {
 };
  
 /* --------- Statements ------------ */
-class Statements:public AstNode {
-	private:
-		vector<class Statement*> statement_list;
-		int count;
-	public:
-		Statements();
-		void pushes_back(class Statement*);
-		vector<class Statement*> getStmtList();
-		void setStmtList(vector<class Statement*>);
-};
-
 class Statement:public AstNode {
 	private:
 		
 	public:
 		StatementType stype; /* Assignment, For, While, GoTo, If, If Else */		
-		Statement();
+};
+
+class Statements:public AstNode {
+	private:
+		vector<class Statement*> statement_list;
+		int count;
+	public:
+		void pushes_back(class Statement*);
+		vector<class Statement*> getStmtList();
+		void setStmtList(vector<class Statement*>);
 };
 
 /* --------- Main Program -------- */
@@ -101,9 +127,12 @@ class Program:public AstNode {
 };
 
 /* ------------ LHS -----------*/
-class LHS:public Var {
+class LHS:public AstNode {
 	private:
 	public:
+		string name; /* Name of the var */
+		unsigned int length; /* If it is array, then length of array */	
+		enum VarType vtype; /* Array or Int */		
 		int index; /* If LHS is array, then index of array */
 		int value;
 		LHS(string, Expr*);
@@ -159,14 +188,16 @@ class IfStatement:public Statement {
 	public:
 		class BoolExpr* cond;  /* condition */
 		class Block* ifBlock;      /* If Block */
-		IfStatement(BoolExpr*, Block*, Block*);
+		IfStatement(BoolExpr*, Block*);
 };
 
 /* -------- If Else Statement ---------- */
 
-class IfElseStatement:public IfStatement {
+class IfElseStatement:public Statement {
 	private:
 	public:
+		class BoolExpr* cond;  /* condition */
+		class Block* ifBlock;      /* If Block */
 		class Block* elseBlock;
 		IfElseStatement(BoolExpr*, Block*, Block*);
 };
@@ -202,12 +233,15 @@ class Expr:public AstNode {
 		int value;      /* evaluated value */
 
 	public:
-		ExprType etype; /* Boolean, normal, binary, unary */
-		Expr(string, ExprType);
-		Expr(int);
-		Expr(LHS*);
+		ExprType etype; /* Boolean, normal, binary, unary */		
 		int getVal();
 		void setVal(int);
+};
+
+class NormalExpr:public Expr {
+	public:		
+		NormalExpr(int);
+		NormalExpr(LHS*);
 };
 
 class BinaryExpr:public Expr {
@@ -220,11 +254,14 @@ class BinaryExpr:public Expr {
 		BinaryExpr(class Expr*, string, class Expr* );
 };
 
-class BoolExpr:public BinaryExpr {
+class BoolExpr:public Expr {
 	private:
 	public:
+		class Expr* first;
+		string Op;
+		class Expr * second;
 		bool val; /* True or False (after Evaluation)*/		
-		BoolExpr(class Expr*, string Op, class Expr*);
+		BoolExpr(class Expr*, string, class Expr*);
 		BoolExpr(bool);
 };
 
