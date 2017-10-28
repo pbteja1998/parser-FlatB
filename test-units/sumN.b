@@ -4,16 +4,25 @@ declblock{
 }
 
 codeblock{
+	i = 0;
+	sum = 1;
+	data[50] = 100;
+	data[51] = data[50] + sum;
+	print "Sum value: ", sum ;
+
+	if i == 1 {
+		data[i] = i ; 
+	} else {
+		data[i] = i - 1;
+	}
+	
 	for i = 1, 100 {
 		data[i] = i ; 
 	}
-	
 
-	sum = 0;
-	for i = 1, 100 {
-		sum = sum + data[i] ;
- 	}
-
-	print "Sum value: ", sum ;
+	for i = sum, data[i], data[100] {
+		data[i] = i ; 
+		sum = i + data[i-1];
+	}
 }
 

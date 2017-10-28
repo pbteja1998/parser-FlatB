@@ -1,14 +1,14 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-enum VarType {normalVar = 1, array = 2};
+enum VarType {normalVar = 1, arrayVar = 2};
 enum ExprType { boolean = 1, normal = 2, binary = 3, unary = 4};
 enum StatementType { assignment = 1, forStmt = 2, ifStmt = 3, ifElseStmt = 4, whileStmt = 5, goToStmt = 6, labeled =  7 };
 
 
 union Node{
 	int number;
-	char* value;
+	char *value;
 	class Program* program;
 	class Vars* vars;
 	class Var* var;
@@ -97,6 +97,7 @@ class Var:public AstNode {
 		unsigned int length; /* If it is array, then length of array */	
 		enum VarType vtype; /* Array or Int */
 		Var(enum VarType, string, class Expr*);
+		Var(enum VarType, string, int);
 		Var(enum VarType, string);
 		Var(string);
 		bool isArray();		
@@ -171,9 +172,9 @@ class ForStatement:public Statement {
 		class Expr* start;  /* Initial Value */
 		class Expr* end;    /* Final Value */
 		class Expr* step;   /* Step Value */
-		class Block* forBlock; /* For Block */
-		ForStatement(LHS*, Expr*, Expr*, Block*);
-		ForStatement(LHS*, Expr*, Expr*, Expr*, Block*);
+		class Statements* forBlock; /* For Block */
+		ForStatement(LHS*, Expr*, Expr*, Statements*);
+		ForStatement(LHS*, Expr*, Expr*, Expr*, Statements*);
 };
 
 /*-------- While Statement -------- */
@@ -182,8 +183,8 @@ class WhileStatement:public Statement {
 	private:
 	public:
 		class BoolExpr* cond; /* Condition */
-		class Block* whileBlock;
-		WhileStatement(BoolExpr*, Block*);
+		class Statements* whileBlock;
+		WhileStatement(BoolExpr*, Statements*);
 };
 
 /* -------- If Statement ----------- */
@@ -192,8 +193,8 @@ class IfStatement:public Statement {
 	private:
 	public:
 		class BoolExpr* cond;  /* condition */
-		class Block* ifBlock;      /* If Block */
-		IfStatement(BoolExpr*, Block*);
+		class Statements* ifBlock;      /* If Block */
+		IfStatement(BoolExpr*, Statements*);
 };
 
 /* -------- If Else Statement ---------- */
@@ -202,9 +203,9 @@ class IfElseStatement:public Statement {
 	private:
 	public:
 		class BoolExpr* cond;  /* condition */
-		class Block* ifBlock;      /* If Block */
-		class Block* elseBlock;
-		IfElseStatement(BoolExpr*, Block*, Block*);
+		class Statements* ifBlock;      /* If Block */
+		class Statements* elseBlock;
+		IfElseStatement(BoolExpr*, Statements*, Statements*);
 };
 
 /* ---------- GoTo Statement ------------ */
@@ -260,7 +261,7 @@ class ReadStatement:public Statement {
 
 class Expr:public AstNode {
 	private:		
-		string expr;    /* Expression as String */
+		string expr;    /* Expression as string */
 		int value;      /* evaluated value */
 
 	public:

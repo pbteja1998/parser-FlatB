@@ -49,6 +49,13 @@ Var::Var(enum VarType type, string name, class Expr* expr)
 	this->length = expr->getVal();
 }
 
+Var::Var(enum VarType type, string name, int val)
+{
+	this->vtype = type;
+	this->name = name;
+	this->length = val;
+}
+
 bool Var::isArray()
 {
 	if(this->vtype == 2)
@@ -94,24 +101,24 @@ LHS::LHS(string name, Expr* expr)
 {
 	this->name = name;
 	this->index = expr->getVal();
-	enum VarType vtype = array;
+	enum VarType vtype = arrayVar;
 	this->vtype = vtype;
 }
 
-IfStatement::IfStatement(BoolExpr* bool_expr, Block* block)
+IfStatement::IfStatement(BoolExpr* bool_expr, Statements* block)
 {
 	this->cond = bool_expr;
 	this->ifBlock = block;
 }
 
-IfElseStatement::IfElseStatement(BoolExpr* bool_expr, Block* block1, Block* block2)
+IfElseStatement::IfElseStatement(BoolExpr* bool_expr, Statements* block1, Statements* block2)
 {
 	this->cond = bool_expr;
 	this->ifBlock = block1;
 	this->elseBlock = block2;
 }
 
-ForStatement::ForStatement(LHS* lhs, Expr* start, Expr* end, Block* block)
+ForStatement::ForStatement(LHS* lhs, Expr* start, Expr* end, Statements* block)
 {
 	this->var = lhs;
 	this->start = start;
@@ -120,7 +127,7 @@ ForStatement::ForStatement(LHS* lhs, Expr* start, Expr* end, Block* block)
 	this->forBlock = block;
 }
 
-ForStatement::ForStatement(LHS* lhs, Expr* start, Expr* end, Expr* step, Block* block)
+ForStatement::ForStatement(LHS* lhs, Expr* start, Expr* end, Expr* step, Statements* block)
 {
 	this->var = lhs;
 	this->start = start;
@@ -129,7 +136,7 @@ ForStatement::ForStatement(LHS* lhs, Expr* start, Expr* end, Expr* step, Block* 
 	this->forBlock = block;
 }
 
-WhileStatement::WhileStatement(BoolExpr* bool_expr, Block* block)
+WhileStatement::WhileStatement(BoolExpr* bool_expr, Statements* block)
 {
 	this->cond = bool_expr;
 	this->whileBlock = block;

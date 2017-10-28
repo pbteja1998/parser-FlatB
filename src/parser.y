@@ -7,7 +7,7 @@
   extern "C" FILE *yyin;
   extern union Node yylval;
   void yyerror(const char *s);
-  class Program* start = NULL;
+  class Program* start;
 %}
 /*	-------------  Tokens ----------------------*/
 %start Program
@@ -28,7 +28,8 @@
 /* --------------- Left Precedence ---------------*/
 %left EQUAL NOT_EQUAL
 %left LT GT LEQ GEQ
-%left ADD SUB MUL DIV
+%left ADD SUB
+%left MUL DIV
 
 /* ------------- Non-Terminal Types	------------- */
 %type <program> Program
@@ -43,7 +44,6 @@
 %type <assignment> Assignment
 %type <lhs> Lhs
 %type <bool_expr> Boolean_Expr
-%type <block> Block
 
 %%
 
@@ -67,10 +67,15 @@ Vars 			: Var {$$ = new Vars(); $$->pushes_back($1);}
 
 
 Var 			: ID { $$ = new Var($1); }
+				| ID OSB NUM CSB {
+	enum VarType type;
+	type = arrayVar;
+	$$ = new Var(type, $1, $3);
+}
 				| ID OSB Expr CSB {
 	enum VarType type;
-	type = array;
-	$$ = new Var(array, string($1), $3);
+	type = arrayVar;
+	$$ = new Var(type, $1, $3);
 }
 				;
 
@@ -86,11 +91,11 @@ Stat_List		: { $$ = new Statements(); }
 
 Statement		: Assignment { $$ = $1; }
 				| LABEL Statement { $$ = new LabeledStatement($1); }
-				| IF Boolean_Expr Block { $$ = new IfStatement($2, $3); }
-				| IF Boolean_Expr Block ELSE Block { $$ = new IfElseStatement($2, $3, $5); }
-				| FOR Lhs EQ Expr COMMA Expr Block { $$ = new ForStatement($2, $4, $6, $7); }
-				| FOR Lhs EQ Expr COMMA Expr COMMA Expr Block { $$ = new ForStatement($2, $4, $6, $8, $9); }
-				| WHILE Boolean_Expr Block { $$ = new WhileStatement($2, $3); }
+				| IF Boolean_Expr OB Stat_List CB { $$ = new IfStatement($2, $4); }
+				| IF Boolean_Expr OB Stat_List CB ELSE OB Stat_List CB { $$ = new IfElseStatement($2, $4, $8); }
+				| FOR Lhs EQ Expr COMMA Expr OB Stat_List CB { $$ = new ForStatement($2, $4, $6, $8); }
+				| FOR Lhs EQ Expr COMMA Expr COMMA Expr OB Stat_List CB { $$ = new ForStatement($2, $4, $6, $8, $10); }
+				| WHILE Boolean_Expr OB Stat_List CB { $$ = new WhileStatement($2, $4); }
 				| GOTO ID SC { $$ = new GoToStatement($2); }
 				| GOTO ID IF Boolean_Expr SC { $$ = new GoToStatement($2, $4); }
 				| PRINT STRING SC { $$ = new PrintStatement($2); }
@@ -125,10 +130,6 @@ Boolean_Expr	: TRUE	{ $$ = new BoolExpr(1); }
 				| Expr GEQ Expr {$$ = new BoolExpr($1, $2, $3);}
 				| Expr EQUAL Expr {$$ = new BoolExpr($1, $2, $3);}
 				| Expr NOT_EQUAL Expr {$$ = new BoolExpr($1, $2, $3);}
-				;
-
-
-Block 			: OB Stat_List CB { $$ = new Block($2); }
 				;
 %%
 

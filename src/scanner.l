@@ -65,18 +65,22 @@ string (\\n|\\t|\\'|\\\\|\\\"|[^\\"'])
 								return READ;
 							}
 {digit}+ 					{ 
+								yylval.number = atoi(yytext);
 								printf("(NUMBER)%s ", yytext);
 								return NUM; 
 							}							
 {alpha}{alphaNumeric}* 		{ 
+								yylval.value = strdup(yytext);
 								printf("(ID)%s ", yytext);
 								return ID; 
 							}
-{alpha}{alphaNumeric}*[:]	{									
+{alpha}{alphaNumeric}*[:]	{			
+								yylval.value = strdup(yytext);						
 								printf("(LABEL)%s ", yytext);
 								return LABEL;
 							}														
 \"{string}*\" 				{ 
+								yylval.value = strdup(yytext);
 								printf("(STRING)%s ", yytext);
 								return STRING; 
 							}
@@ -85,46 +89,57 @@ string (\\n|\\t|\\'|\\\\|\\\"|[^\\"'])
 								return ICOMMA;
 							}
 "+"							{
+								yylval.value = strdup(yytext);
 								printf("+");
 								return ADD;
 							}
 "-"							{
+								yylval.value = strdup(yytext);
 								printf("-");
 								return SUB;
 							}
 "*"							{								
+								yylval.value = strdup(yytext);
 								printf("*");
 								return MUL;
 							}
 "/"							{								
+								yylval.value = strdup(yytext);
 								printf("/");
 								return DIV;
 							}							
-"<"							{									
+"<"							{								
+								yylval.value = strdup(yytext);	
 								printf("<");
 								return LT;
 							}
 ">"							{
+								yylval.value = strdup(yytext);
 								printf(">");
 								return GT;
 							}
 "="							{								
+								yylval.value = strdup(yytext);
 								printf("=");
 								return EQ;
 							}
-"=="						{									
+"=="						{								
+								yylval.value = strdup(yytext);	
 								printf("==");
 								return EQUAL;
 							}
-"!="						{									
+"!="						{								
+								yylval.value = strdup(yytext);	
 								printf("!=");
 								return NOT_EQUAL;
 							}							
 "<="						{								
+								yylval.value = strdup(yytext);
 								printf("<=");
 								return LEQ;
 							}
 ">="						{
+								yylval.value = strdup(yytext);
 								printf(">=");
 								return GEQ;
 							}
