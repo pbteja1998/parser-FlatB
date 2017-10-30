@@ -86,7 +86,6 @@ Code_Block		: CDB OB Stat_List CB { $$ = $3; }
 
 Stat_List		: { $$ = new Statements(); }
 				| Stat_List Statement { $$->pushes_back($2); }
-				| Statement { $$->pushes_back($1); }
 				;
 
 
