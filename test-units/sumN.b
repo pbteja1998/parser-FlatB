@@ -22,7 +22,7 @@ codeblock{
 
 	for i = sum, data[i], data[100] {
 		data[i] = i ; 
-		sum = i + data[i-1];
+		sum = i + data[i];
 	}
 }
 

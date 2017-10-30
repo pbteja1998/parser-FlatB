@@ -39,6 +39,7 @@
 %type <vars> Vars
 %type <var> Var
 %type <expr> Expr
+%type <binary_expr> BinaryExpr
 %type <statements> Stat_List
 %type <statement> Statement
 %type <assignment> Assignment
@@ -56,7 +57,7 @@ Program			: Decl_Block Code_Block {
 Decl_Block		: DLB OB Decl_List CB { $$ = $3; }
 				;
 
-Decl_List		: INT Vars SC { $$ = $2; }
+Decl_List		: { $$ = new Vars();  }						
 				| Decl_List INT Vars SC { $$->pushes_back($3); }
 				;
 
@@ -97,7 +98,7 @@ Statement		: Assignment { $$ = $1; }
 				| FOR Lhs EQ Expr COMMA Expr COMMA Expr OB Stat_List CB { $$ = new ForStatement($2, $4, $6, $8, $10); }
 				| WHILE Boolean_Expr OB Stat_List CB { $$ = new WhileStatement($2, $4); }
 				| GOTO ID SC { $$ = new GoToStatement($2); }
-				| GOTO ID IF Boolean_Expr SC { $$ = new GoToStatement($2, $4); }
+				| GOTO ID IF Boolean_Expr SC { $$ = new GoToStatement($2, $4);  }
 				| PRINT STRING SC { $$ = new PrintStatement($2); }
 				| PRINT STRING COMMA Vars SC { $$ = new PrintStatement($2, $4); }
 				| PRINTLN STRING SC { $$ = new PrintLnStatement($2); }
@@ -109,23 +110,28 @@ Assignment		: Lhs EQ Expr SC { $$ = new Assignment($1, $2, $3); }
 				;
 
 Lhs				: ID { $$ = new LHS($1); }
-				| ID OSB Expr CSB { $$ = new LHS($1, $3); }
+				| ID OSB NUM CSB { $$ = new LHS($1, $3); }
+				| ID OSB ID CSB { $$ = new LHS($1, $3);}
+				| ID OSB BinaryExpr CSB { $$ = new LHS($1, $3); }
+				;
 
 Expr 			: Lhs 	{ $$ = new NormalExpr($1); }
-				| Expr ADD Expr { $$ = new BinaryExpr($1, $2, $3); }
-				| Expr SUB Expr { $$ = new BinaryExpr($1, $2, $3); }
-				| Expr MUL Expr { $$ = new BinaryExpr($1, $2, $3); }
-				| Expr DIV Expr { $$ = new BinaryExpr($1, $2, $3); }
+				| BinaryExpr { $$ = $1; }				
 				| SUB Expr { $$ = new UnaryExpr($1, $2); }
 				| Boolean_Expr { $$ = $1; }
 				| NUM { $$ = new NormalExpr($1); }
 				;
 
+BinaryExpr      : Expr ADD Expr { $$ = new BinaryExpr($1, $2, $3); }
+				| Expr SUB Expr { $$ = new BinaryExpr($1, $2, $3); }
+				| Expr MUL Expr { $$ = new BinaryExpr($1, $2, $3); }
+				| Expr DIV Expr { $$ = new BinaryExpr($1, $2, $3); }
+
 
 Boolean_Expr	: TRUE	{ $$ = new BoolExpr(1); }
 				| FALSE { $$ = new BoolExpr(0); }
 				| Expr GT Expr {$$ = new BoolExpr($1, $2, $3);}
-				| Expr LT Expr {$$ = new BoolExpr($1, $2, $3);}
+				| Expr LT Expr {$$ = new BoolExpr($1, $2, $3); }
 				| Expr LEQ Expr {$$ = new BoolExpr($1, $2, $3);}
 				| Expr GEQ Expr {$$ = new BoolExpr($1, $2, $3);}
 				| Expr EQUAL Expr {$$ = new BoolExpr($1, $2, $3);}

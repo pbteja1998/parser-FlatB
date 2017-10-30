@@ -97,10 +97,26 @@ LHS::LHS(string name)
 	this->vtype = vtype;	
 }
 
-LHS::LHS(string name, Expr* expr)
+LHS::LHS(string name, string string_index)
 {
 	this->name = name;
-	this->index = expr->getVal();
+	this->string_index = string_index;
+	enum VarType vtype = arrayVar;
+	this->vtype = vtype;
+}
+
+LHS::LHS(string name, int int_index)
+{
+	this->name = name;
+	this->int_index = int_index;
+	enum VarType vtype = arrayVar;
+	this->vtype = vtype;
+}
+
+LHS::LHS(string name, Expr* expr_index)
+{
+	this->name = name;
+	this->expr_index = expr_index;
 	enum VarType vtype = arrayVar;
 	this->vtype = vtype;
 }

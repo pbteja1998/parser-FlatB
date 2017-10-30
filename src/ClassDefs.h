@@ -13,6 +13,7 @@ union Node{
 	class Vars* vars;
 	class Var* var;
 	class Expr* expr;
+	class BinaryExpr *binary_expr;
 	class Statements* statements;
 	class Statement* statement;
 	class Assignment* assignment;
@@ -27,6 +28,7 @@ union Node{
 		vars = NULL;
 		var = NULL;
 		expr = NULL;
+		binary_expr = NULL;
 		statements = NULL;
 		statement = NULL;
 		assignment = NULL;
@@ -34,7 +36,6 @@ union Node{
 		bool_expr = NULL;
 		block = NULL;
 	}
-	~Node(){};
 };
 
 typedef union Node YYSTYPE;
@@ -139,10 +140,14 @@ class LHS:public AstNode {
 		string name; /* Name of the var */
 		unsigned int length; /* If it is array, then length of array */	
 		enum VarType vtype; /* Array or Int */		
-		int index; /* If LHS is array, then index of array */
-		int value;
-		LHS(string, Expr*);
+		int int_index; /* If LHS is array, then index of array */
+		string string_index; /* If LHS is array,then index of array */
+		Expr* expr_index;  /* If LHS is array, then index of array */
+		int value; /*value stored in LHS */
+		LHS(string, string);
+		LHS(string, int);
 		LHS(string);
+		LHS(string, Expr*);
 };
 
 /* ----- Assignment Statement ------ */
@@ -261,12 +266,12 @@ class ReadStatement:public Statement {
 
 class Expr:public AstNode {
 	private:		
-		string expr;    /* Expression as string */
 		int value;      /* evaluated value */
 
-	public:
+	public:		
+		string expr;    /* Expression as string */
 		ExprType etype; /* Boolean, normal, binary, unary */		
-		int getVal();
+		int getVal();		
 		void setVal(int);
 };
 
@@ -282,7 +287,7 @@ class BinaryExpr:public Expr {
 	public:
 		class Expr* first;
 		string Op;
-		class Expr * second;
+		class Expr* second;
 		BinaryExpr(class Expr*, string, class Expr* );
 };
 
