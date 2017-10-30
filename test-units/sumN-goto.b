@@ -16,7 +16,7 @@ L1:	data[i] = i ;
 	sum = sum + data[i-2];
 	i = i + 1;
 
-L2:	goto L1 if i < 100;
+L2  :	goto L1 if i < 100;
 	i = i + 1;
 	a = 0;
 
