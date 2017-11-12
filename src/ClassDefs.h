@@ -74,10 +74,10 @@ class NormalExpr;
 
 
 class AstNode {
-
+	
 };
 
-
+void print_vars();
 
 /* --------- Variables --------- */
 class Vars:public AstNode {
@@ -86,9 +86,10 @@ class Vars:public AstNode {
 		int count;
 	public:
 		Vars();
-		Vars(class Vars*);		
-		void pushes_back(class Var*);	
-		void pushes_back(class Vars*);	
+		Vars(class Vars*);
+		void pushes_back(class Var*);
+		void pushes_back(class Vars*);
+		void traverse();
 };
 
 class Var:public AstNode {
@@ -101,7 +102,8 @@ class Var:public AstNode {
 		Var(enum VarType, string, int);
 		Var(enum VarType, string);
 		Var(string);
-		bool isArray();		
+		bool isArray();	
+		void traverse();	
 };
  
 /* --------- Statements ------------ */
@@ -110,6 +112,7 @@ class Statement:public AstNode {
 		
 	public:
 		StatementType stype; /* Assignment, For, While, GoTo, If, If Else */		
+		virtual void traverse(){};		
 };
 
 class Statements:public AstNode {
@@ -121,6 +124,7 @@ class Statements:public AstNode {
 		void pushes_back(class Statement*);
 		vector<class Statement*> getStmtList();
 		void setStmtList(vector<class Statement*>);
+		void traverse();
 };
 
 /* --------- Main Program -------- */
@@ -131,6 +135,7 @@ class Program:public AstNode {
 		class Vars* vars;
 		class Statements* statements;
 		Program(class Vars*, class Statements*);
+		void traverse();
 };
 
 /* ------------ LHS -----------*/
@@ -148,6 +153,7 @@ class LHS:public AstNode {
 		LHS(string, int);
 		LHS(string);
 		LHS(string, Expr*);
+		void traverse();
 };
 
 /* ----- Assignment Statement ------ */
@@ -159,6 +165,7 @@ class Assignment:public Statement {
 		class Expr* expr; /* RHS of assignment statement */
 		string Op; /* = (At Present), (In future, += , -=) */
 		Assignment(class LHS*, string, class Expr*);
+		void traverse();
 };
 
 /* ------ Block -------- */
@@ -166,6 +173,7 @@ class Assignment:public Statement {
 class Block:public Statements {
 	public:
 		Block(class Statements*);	
+		void traverse();
 };
 
 /* ----- For Statement -------- */
@@ -180,6 +188,7 @@ class ForStatement:public Statement {
 		class Statements* forBlock; /* For Block */
 		ForStatement(LHS*, Expr*, Expr*, Statements*);
 		ForStatement(LHS*, Expr*, Expr*, Expr*, Statements*);
+		void traverse();
 };
 
 /*-------- While Statement -------- */
@@ -190,6 +199,7 @@ class WhileStatement:public Statement {
 		class BoolExpr* cond; /* Condition */
 		class Statements* whileBlock;
 		WhileStatement(BoolExpr*, Statements*);
+		void traverse();
 };
 
 /* -------- If Statement ----------- */
@@ -200,6 +210,7 @@ class IfStatement:public Statement {
 		class BoolExpr* cond;  /* condition */
 		class Statements* ifBlock;      /* If Block */
 		IfStatement(BoolExpr*, Statements*);
+		void traverse();
 };
 
 /* -------- If Else Statement ---------- */
@@ -211,6 +222,7 @@ class IfElseStatement:public Statement {
 		class Statements* ifBlock;      /* If Block */
 		class Statements* elseBlock;
 		IfElseStatement(BoolExpr*, Statements*, Statements*);
+		void traverse();
 };
 
 /* ---------- GoTo Statement ------------ */
@@ -222,6 +234,7 @@ class GoToStatement:public Statement {
 		class BoolExpr* cond; /* If Conditional Goto */
 		GoToStatement(string, BoolExpr*);
 		GoToStatement(string);
+		void traverse();
 };
 
 /* ------ Labeled Statement ------------ */
@@ -229,7 +242,9 @@ class LabeledStatement:public Statement {
 	private:
 	public:
 		string label;
-		LabeledStatement(string);
+		class Statement* statement;
+		LabeledStatement(string, class Statement*);
+		void traverse();
 };
 
 class Label:public Var {
@@ -244,6 +259,7 @@ class PrintStatement:public Statement {
 		class Vars* vars;
 		PrintStatement(string);
 		PrintStatement(string, class Vars*);
+		void traverse();
 };
 
 /* ------- PrintLn Statement --------- */
@@ -252,6 +268,7 @@ class PrintLnStatement:public Statement {
 	public:
 		string text;
 		PrintLnStatement(string);
+		void traverse();
 };
 
 /* ------- Read Statement --------- */
@@ -260,25 +277,28 @@ class ReadStatement:public Statement {
 	public:
 		class Var* var;
 		ReadStatement(class Var*);
+		void traverse();
 };
 
 /* ------- Expressions ---------- */
 
 class Expr:public AstNode {
-	private:		
-		int value;      /* evaluated value */
+	private:
 
-	public:		
+	public:
+		int value;      /* evaluated value */
 		string expr;    /* Expression as string */
 		ExprType etype; /* Boolean, normal, binary, unary */		
 		int getVal();		
 		void setVal(int);
+		virtual void traverse(){};
 };
 
 class NormalExpr:public Expr {
 	public:		
 		NormalExpr(int);
 		NormalExpr(LHS*);
+		void traverse();
 };
 
 class BinaryExpr:public Expr {
@@ -289,6 +309,7 @@ class BinaryExpr:public Expr {
 		string Op;
 		class Expr* second;
 		BinaryExpr(class Expr*, string, class Expr* );
+		void traverse();
 };
 
 class BoolExpr:public Expr {
@@ -300,6 +321,7 @@ class BoolExpr:public Expr {
 		bool val; /* True or False (after Evaluation)*/		
 		BoolExpr(class Expr*, string, class Expr*);
 		BoolExpr(bool);
+		void traverse();
 };
 
 class UnaryExpr:public Expr {
@@ -308,4 +330,5 @@ class UnaryExpr:public Expr {
 		string Op;
 		class Expr* second;
 		UnaryExpr(string, class Expr* );
+		void traverse();
 };

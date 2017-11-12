@@ -15,7 +15,7 @@
 CC = g++
 
 bcc: parser.tab.c lex.yy.c Classes.cpp ClassDefs.h
-	$(CC) -g -std=c++14 lex.yy.c parser.tab.c Classes.cpp -lfl -o bcc
+	$(CC) -g -std=c++11 lex.yy.c parser.tab.c Classes.cpp -lfl -o bcc
 
 lex.yy.c: scanner.l parser.tab.h
 	flex scanner.l
