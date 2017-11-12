@@ -180,6 +180,11 @@ LHS::LHS(string name, Expr* expr_index)
 	this->vtype = vtype;
 }
 
+void LHSs::pushes_back(class LHS *lhs)
+{	
+	this->lhs_list.push_back(lhs);
+}
+
 IfStatement::IfStatement(BoolExpr* bool_expr, Statements* block)
 {
 	this->cond = bool_expr;
@@ -233,17 +238,20 @@ GoToStatement::GoToStatement(string label, BoolExpr* expr)
 
 PrintStatement::PrintStatement(string text)
 {
+	this->assigned = 1;
 	this->text = text;
 }
 
-PrintStatement::PrintStatement(string text, class Vars* vars)
+PrintStatement::PrintStatement(string text, class LHSs* lhss)
 {
+	this->assigned = 1;
 	this->text = text;
-	this->vars = vars;
+	this->lhss = lhss;
 }
 
 PrintStatement::PrintStatement(class LHS* var)
 {
+	this->assigned = 0;
 	this->var = var;
 }
 
@@ -310,6 +318,9 @@ BinaryExpr::BinaryExpr(class Expr* first, string Op, class Expr* second)
 		this->setVal(this->first->getVal() * this->second->getVal());
 	} else if(this->Op == "/") {
 		this->setVal(this->first->getVal() / this->second->getVal());
+	} else if(this->Op == "%") {
+		cout << "here" << endl;
+		this->setVal(this->first->getVal() % this->second->getVal());
 	} 
 	enum ExprType type = binary;
 	this->etype = type;	
@@ -879,11 +890,21 @@ int PrintLnStatement::interpret()
 	return 0;
 }
 
+LHSs::LHSs()
+{
+
+}
+
 int PrintStatement::interpret()
 {	
-	cout << this->var->interpret() << endl;
-
-	
+	if(this->assigned){
+		cout << this->text;
+		for(int i = 0; i < this->lhss->lhs_list.size(); i++) {
+			cout << this->lhss->lhs_list[i]->interpret();
+		}
+	}
+	else
+		cout << this->var->interpret();
 	return 0;
 }
 
@@ -927,6 +948,8 @@ int BinaryExpr::interpret()
 		return this->first->interpret() * this->second->interpret();
 	if(this->Op == "/") 
 		return this->first->interpret() / this->second->interpret();
+	if(this->Op == "%") 
+		return this->first->interpret() % this->second->interpret();
 }
 
 int UnaryExpr::interpret()

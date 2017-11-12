@@ -19,7 +19,7 @@
 %token PRINT PRINTLN READ
 %token <value> ID STRING LABEL
 %token <number> NUM
-%token <value> ADD SUB MUL DIV
+%token <value> ADD SUB MUL DIV MOD
 %token <value> LT GT LEQ GEQ EQ
 %token <value> EQUAL NOT_EQUAL
 %token OB CB OSB CSB
@@ -28,7 +28,7 @@
 /* --------------- Left Precedence ---------------*/
 %left EQUAL NOT_EQUAL
 %left LT GT LEQ GEQ
-%left ADD SUB
+%left ADD SUB MOD
 %left MUL DIV
 
 /* ------------- Non-Terminal Types	------------- */
@@ -44,6 +44,7 @@
 %type <statement> Statement
 %type <assignment> Assignment
 %type <lhs> Lhs
+%type <lhss> Lhss
 %type <bool_expr> Boolean_Expr
 
 %%
@@ -98,9 +99,9 @@ Statement		: Assignment { $$ = $1; }
 				| WHILE Boolean_Expr OB Stat_List CB { $$ = new WhileStatement($2, $4); }
 				| GOTO ID SC { $$ = new GoToStatement($2); }
 				| GOTO ID IF Boolean_Expr SC { $$ = new GoToStatement($2, $4);  }
-				| PRINT STRING SC { $$ = new PrintStatement($2); }
-				| PRINT STRING COMMA Vars SC { $$ = new PrintStatement($2, $4); }
 				| PRINT Lhs SC{ $$ = new PrintStatement($2); }
+				| PRINT STRING SC { $$ = new PrintStatement($2); }
+				| PRINT STRING COMMA Lhss SC { $$ = new PrintStatement($2, $4); }				
 				| PRINTLN STRING SC { $$ = new PrintLnStatement($2); }
 				| READ Lhs SC { $$ = new ReadStatement($2); }
 				;
@@ -111,6 +112,10 @@ Assignment		: Lhs EQ Expr SC { $$ = new Assignment($1, $2, $3); }
 
 Lhs				: ID { $$ = new LHS($1); }
 				| ID OSB Expr CSB {$$ = new LHS($1, $3);}			
+				;
+
+Lhss 			: Lhs {$$ = new LHSs(); $$->pushes_back($1);}
+				| Lhss COMMA Lhs {$$->pushes_back($3);}
 				;
 
 Expr 			: Lhs 	{ $$ = new NormalExpr($1); }
@@ -124,6 +129,7 @@ BinaryExpr      : Expr ADD Expr { $$ = new BinaryExpr($1, $2, $3); }
 				| Expr SUB Expr { $$ = new BinaryExpr($1, $2, $3); }
 				| Expr MUL Expr { $$ = new BinaryExpr($1, $2, $3); }
 				| Expr DIV Expr { $$ = new BinaryExpr($1, $2, $3); }
+				| Expr MOD Expr { $$ = new BinaryExpr($1, $2, $3); }
 
 
 Boolean_Expr	: TRUE	{ $$ = new BoolExpr(1); }

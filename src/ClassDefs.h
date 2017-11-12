@@ -18,6 +18,7 @@ union Node{
 	class Statement* statement;
 	class Assignment* assignment;
 	class LHS* lhs; 
+	class LHSs* lhss;
 	class BoolExpr* bool_expr;
 	class Block* block;
 
@@ -33,6 +34,7 @@ union Node{
 		statement = NULL;
 		assignment = NULL;
 		lhs = NULL;
+		lhss = NULL;
 		bool_expr = NULL;
 		block = NULL;
 	}
@@ -49,6 +51,7 @@ class Vars;
 class Var;
 class Statements;
 class LHS;
+class LHSs;
 class Block;
 
 class Statement;
@@ -162,6 +165,15 @@ class LHS:public AstNode {
 		int interpret();
 };
 
+class LHSs:public AstNode {
+	public:
+		vector<class LHS*> lhs_list;
+		LHSs();		
+		void pushes_back(class LHS*);		
+		void traverse();
+		int interpret();
+};
+
 /* ----- Assignment Statement ------ */
 
 class Assignment:public Statement {
@@ -270,11 +282,12 @@ class Label:public Var {
 class PrintStatement:public Statement {
 	private:
 	public:
+		bool assigned;
 		string text;
-		class Vars* vars;
+		class LHSs* lhss;
 		class LHS* var;
 		PrintStatement(string);
-		PrintStatement(string, class Vars*);
+		PrintStatement(string, class LHSs*);
 		PrintStatement(class LHS*);
 		void traverse();
 		int interpret();

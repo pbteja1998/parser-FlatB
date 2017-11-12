@@ -88,6 +88,11 @@ string (\\n|\\t|\\'|\\\\|\\\"|[^\\"'])
 								printf("\"");
 								return ICOMMA;
 							}
+"%"							{
+								yylval.value = strdup(yytext);
+								printf("%%");
+								return MOD;
+							}
 "+"							{
 								yylval.value = strdup(yytext);
 								printf("+");
