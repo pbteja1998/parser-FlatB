@@ -81,15 +81,16 @@ void print_vars();
 
 /* --------- Variables --------- */
 class Vars:public AstNode {
-	private:
-		vector<class Var*> var_list;
+	private:		
 		int count;
 	public:
+		vector<class Var*> var_list;
 		Vars();
 		Vars(class Vars*);
 		void pushes_back(class Var*);
 		void pushes_back(class Vars*);
 		void traverse();
+		int interpret();
 };
 
 class Var:public AstNode {
@@ -103,7 +104,8 @@ class Var:public AstNode {
 		Var(enum VarType, string);
 		Var(string);
 		bool isArray();	
-		void traverse();	
+		void traverse();
+		int interpret();	
 };
  
 /* --------- Statements ------------ */
@@ -112,7 +114,8 @@ class Statement:public AstNode {
 		
 	public:
 		StatementType stype; /* Assignment, For, While, GoTo, If, If Else */		
-		virtual void traverse(){};		
+		virtual void traverse(){};
+		virtual int interpret(){};
 };
 
 class Statements:public AstNode {
@@ -125,6 +128,7 @@ class Statements:public AstNode {
 		vector<class Statement*> getStmtList();
 		void setStmtList(vector<class Statement*>);
 		void traverse();
+		int interpret();
 };
 
 /* --------- Main Program -------- */
@@ -136,6 +140,7 @@ class Program:public AstNode {
 		class Statements* statements;
 		Program(class Vars*, class Statements*);
 		void traverse();
+		int interpret();
 };
 
 /* ------------ LHS -----------*/
@@ -154,6 +159,7 @@ class LHS:public AstNode {
 		LHS(string);
 		LHS(string, Expr*);
 		void traverse();
+		int interpret();
 };
 
 /* ----- Assignment Statement ------ */
@@ -166,6 +172,7 @@ class Assignment:public Statement {
 		string Op; /* = (At Present), (In future, += , -=) */
 		Assignment(class LHS*, string, class Expr*);
 		void traverse();
+		int interpret();
 };
 
 /* ------ Block -------- */
@@ -174,6 +181,7 @@ class Block:public Statements {
 	public:
 		Block(class Statements*);	
 		void traverse();
+		int interpret();
 };
 
 /* ----- For Statement -------- */
@@ -181,6 +189,7 @@ class Block:public Statements {
 class ForStatement:public Statement {
 	private:
 	public:
+		bool isStep;
 		LHS* var;  /* var which is being looped */
 		class Expr* start;  /* Initial Value */
 		class Expr* end;    /* Final Value */
@@ -189,6 +198,7 @@ class ForStatement:public Statement {
 		ForStatement(LHS*, Expr*, Expr*, Statements*);
 		ForStatement(LHS*, Expr*, Expr*, Expr*, Statements*);
 		void traverse();
+		int interpret();
 };
 
 /*-------- While Statement -------- */
@@ -200,6 +210,7 @@ class WhileStatement:public Statement {
 		class Statements* whileBlock;
 		WhileStatement(BoolExpr*, Statements*);
 		void traverse();
+		int interpret();
 };
 
 /* -------- If Statement ----------- */
@@ -211,6 +222,7 @@ class IfStatement:public Statement {
 		class Statements* ifBlock;      /* If Block */
 		IfStatement(BoolExpr*, Statements*);
 		void traverse();
+		int interpret();
 };
 
 /* -------- If Else Statement ---------- */
@@ -223,6 +235,7 @@ class IfElseStatement:public Statement {
 		class Statements* elseBlock;
 		IfElseStatement(BoolExpr*, Statements*, Statements*);
 		void traverse();
+		int interpret();
 };
 
 /* ---------- GoTo Statement ------------ */
@@ -235,6 +248,7 @@ class GoToStatement:public Statement {
 		GoToStatement(string, BoolExpr*);
 		GoToStatement(string);
 		void traverse();
+		int interpret();
 };
 
 /* ------ Labeled Statement ------------ */
@@ -245,6 +259,7 @@ class LabeledStatement:public Statement {
 		class Statement* statement;
 		LabeledStatement(string, class Statement*);
 		void traverse();
+		int interpret();
 };
 
 class Label:public Var {
@@ -257,9 +272,12 @@ class PrintStatement:public Statement {
 	public:
 		string text;
 		class Vars* vars;
+		class LHS* var;
 		PrintStatement(string);
 		PrintStatement(string, class Vars*);
+		PrintStatement(class LHS*);
 		void traverse();
+		int interpret();
 };
 
 /* ------- PrintLn Statement --------- */
@@ -269,15 +287,17 @@ class PrintLnStatement:public Statement {
 		string text;
 		PrintLnStatement(string);
 		void traverse();
+		int interpret();
 };
 
 /* ------- Read Statement --------- */
 class ReadStatement:public Statement {
 	private:
 	public:
-		class Var* var;
-		ReadStatement(class Var*);
+		class LHS* var;
+		ReadStatement(class LHS*);
 		void traverse();
+		int interpret();		
 };
 
 /* ------- Expressions ---------- */
@@ -292,13 +312,16 @@ class Expr:public AstNode {
 		int getVal();		
 		void setVal(int);
 		virtual void traverse(){};
+		virtual int interpret(){};
 };
 
 class NormalExpr:public Expr {
-	public:		
+	public:
+		class LHS* lhs;
 		NormalExpr(int);
 		NormalExpr(LHS*);
 		void traverse();
+		int interpret();		
 };
 
 class BinaryExpr:public Expr {
@@ -310,6 +333,7 @@ class BinaryExpr:public Expr {
 		class Expr* second;
 		BinaryExpr(class Expr*, string, class Expr* );
 		void traverse();
+		int interpret();		
 };
 
 class BoolExpr:public Expr {
@@ -318,10 +342,12 @@ class BoolExpr:public Expr {
 		class Expr* first;
 		string Op;
 		class Expr * second;
-		bool val; /* True or False (after Evaluation)*/		
+		bool val; /* True or False (after Evaluation)*/
+		bool assigned; /* if BoolExpr is of type "TRUE" or "FALSE" */
 		BoolExpr(class Expr*, string, class Expr*);
 		BoolExpr(bool);
 		void traverse();
+		int interpret();		
 };
 
 class UnaryExpr:public Expr {
@@ -331,4 +357,5 @@ class UnaryExpr:public Expr {
 		class Expr* second;
 		UnaryExpr(string, class Expr* );
 		void traverse();
+		int interpret();
 };

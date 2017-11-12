@@ -57,7 +57,7 @@ Var::Var(string name)
 	this->name = name;
 	enum VarType vtype = normalVar;
 	this->vtype = vtype;	
-	normal_vars[name] = INT_MIN;
+	normal_vars[name] = 0;
 }
 
 Var::Var(enum VarType type, string name)
@@ -65,7 +65,7 @@ Var::Var(enum VarType type, string name)
 	this->vtype = type;
 	this->name = name;
 	if(type == normalVar)
-		normal_vars[name] = INT_MIN;		
+		normal_vars[name] = 0;		
 }
 
 Var::Var(enum VarType type, string name, class Expr* expr)
@@ -77,7 +77,7 @@ Var::Var(enum VarType type, string name, class Expr* expr)
 	if(type == arrayVar){
 		array_defs[name] = this->length;
 		for(int i = 0; i < this->length; i++)
-			array_vars[name].push_back(INT_MIN);
+			array_vars[name].push_back(0);
 	}
 }
 
@@ -90,7 +90,7 @@ Var::Var(enum VarType type, string name, int val)
 	if(type == arrayVar){
 		array_defs[name] = this->length;
 		for(int i = 0; i < this->length; i++)
-			array_vars[name].push_back(INT_MIN);
+			array_vars[name].push_back(0);
 	}
 }
 
@@ -158,7 +158,8 @@ LHS::LHS(string name, string string_index)
 }
 
 LHS::LHS(string name, int int_index)
-{
+{ 
+	// cout << "HERE" << endl;
 	this->name = name;
 	this->int_index = int_index;
 	enum VarType vtype = arrayVar;
@@ -167,6 +168,8 @@ LHS::LHS(string name, int int_index)
 	if(array_vars.find(name) != array_vars.end()){
 		this->value = array_vars[name][int_index];
 	}
+
+	// cout << "HEREENDED" << endl;
 }
 
 LHS::LHS(string name, Expr* expr_index)
@@ -192,23 +195,17 @@ IfElseStatement::IfElseStatement(BoolExpr* bool_expr, Statements* block1, Statem
 
 ForStatement::ForStatement(LHS* lhs, Expr* start, Expr* end, Statements* block)
 {
+	this->isStep = 0;
 	this->var = lhs;
 	this->start = start;
 	this->end = end;
 	this->step = new NormalExpr(1);
-	this->forBlock = block;
-
-	/* Initialization */
-	this->var->value = this->start->value;
-
-	for(int i = start->value; i <= end->value; i++) {
-		
-	}
-	
+	this->forBlock = block;	
 }
 
 ForStatement::ForStatement(LHS* lhs, Expr* start, Expr* end, Expr* step, Statements* block)
 {
+	this->isStep = 1;
 	this->var = lhs;
 	this->start = start;
 	this->end = end;
@@ -245,12 +242,17 @@ PrintStatement::PrintStatement(string text, class Vars* vars)
 	this->vars = vars;
 }
 
+PrintStatement::PrintStatement(class LHS* var)
+{
+	this->var = var;
+}
+
 PrintLnStatement::PrintLnStatement(string text)
 {
 	this->text = text;
 }
 
-ReadStatement::ReadStatement(class Var* var)
+ReadStatement::ReadStatement(class LHS* var)
 {
 	this->var = var;
 }
@@ -266,10 +268,11 @@ NormalExpr::NormalExpr(int value)
 
 NormalExpr::NormalExpr(LHS* lhs)
 {
+	this->lhs = lhs;
 	// cout << endl;
 	// cout << lhs->name << "[" << lhs->int_index << "]" << " = " << lhs->value << endl;
 	// cout << endl;
-	this->setVal(lhs->value);
+	this->setVal(lhs->interpret());
 	enum ExprType type = normal;
 	this->etype = type;
 
@@ -277,9 +280,9 @@ NormalExpr::NormalExpr(LHS* lhs)
 	
 	if(lhs->vtype == arrayVar){
 		if(lhs->int_index)
-			this->expr = lhs->name + "[" + to_string(lhs->int_index) + "]";
+			this->value = array_vars[lhs->name][lhs->int_index];
 		else if(lhs->string_index != "")
-			this->expr = lhs->name + "[" + lhs->string_index + "]";		
+			this->value = array_vars[lhs->name][normal_vars[lhs->string_index]];		
 	}			
 }
 
@@ -327,6 +330,7 @@ UnaryExpr::UnaryExpr(string Op, class Expr* second)
 
 BoolExpr::BoolExpr(bool val)
 {
+	this->assigned = 1;
 	this->val = val;
 	enum ExprType type = boolean;
 	this->etype = type;		
@@ -334,36 +338,38 @@ BoolExpr::BoolExpr(bool val)
 
 BoolExpr::BoolExpr(class Expr* left, string Op, class Expr* right)
 {
+	// cout << "OP " << Op << endl; 
+	this->assigned = 0;
 	this->first = left;
 	this->second = right;
 	this->Op = Op;
 
-	if(Op == "GT") {
+	if(Op == ">") {
 		if(left->getVal() > right->getVal()) 
 			this->val = 1;
 		else
 			this->val = 0;
-	} else if(Op == "LT") {
+	} else if(Op == "<") {
 		if(left->getVal() < right->getVal()) 
 			this->val = 1;
 		else
 			this->val = 0;
-	} else if(Op == "GEQ") {
+	} else if(Op == ">=") {
 		if(left->getVal() >= right->getVal()) 
 			this->val = 1;
 		else
 			this->val = 0;
-	} else if(Op == "LEQ") {
+	} else if(Op == "<=") {
 		if(left->getVal() <= right->getVal()) 
 			this->val = 1;
 		else
 			this->val = 0;
-	} if(Op == "EQUAL") {
+	} if(Op == "==") {
 		if(left->getVal() == right->getVal()) 
 			this->val = 1;
 		else
 			this->val = 0;
-	} else if(Op == "NOT_EQUAL") {
+	} else if(Op == "!=") {
 		if(left->getVal() != right->getVal()) 
 			this->val = 1;
 		else
@@ -735,4 +741,259 @@ void print_vars()
 			cout << it1->first << "[" << i << "] = " << x[i] << endl;
 		}
 	}
+}
+
+int Program::interpret()
+{
+	this->vars->interpret();
+	this->statements->interpret();
+
+	return 0;
+}
+
+int Vars::interpret()
+{
+	vector<class Var*> var_list = this->var_list;
+	
+	for(int i = 0; i < var_list.size(); i++) {
+		var_list[i]->interpret();
+	}
+
+	return 0;
+}
+
+int Var::interpret()
+{
+	if(this->vtype == normalVar) {
+		normal_vars[this->name] = 0;
+	} else {
+		vector<int> arr(this->length, 0);
+		array_vars[this->name] = arr;
+	}
+
+	return 0;
+}
+
+int Statements::interpret()
+{
+	vector<class Statement*> statement_list = this->statement_list;
+	
+	for(int i = 0; i < statement_list.size(); i++) {
+		statement_list[i]->interpret();
+	}
+
+	return 0;
+}
+
+int Assignment::interpret()
+{	
+	if(this->lhs->vtype == normalVar) {
+		normal_vars[this->lhs->name] = this->expr->interpret();
+	} else {
+		if(this->lhs->int_index){			
+			array_vars[this->lhs->name][this->lhs->int_index] = this->expr->interpret();
+			// cout << "here1" << endl;
+		}			
+		else if(this->lhs->string_index != ""){
+			int index = normal_vars[this->lhs->string_index];			
+			array_vars[this->lhs->name][index] = this->expr->interpret();	
+			// cout << "here2" << endl;
+			// cout << normal_vars[this->expr->expr] << endl;
+			// cout << this->expr->interpret() << endl;
+		} else {
+			array_vars[this->lhs->name][this->lhs->expr_index->interpret()] = this->expr->interpret();
+			// cout << "here3" << endl;
+		}			
+		
+	}
+
+	return 0;
+}
+
+int LabeledStatement::interpret()
+{
+	this->statement->interpret();
+	return 0;
+}
+
+int IfStatement::interpret()
+{
+	if(this->cond->interpret()) {
+		this->ifBlock->interpret();
+	}
+
+	return 0;
+}
+
+int IfElseStatement::interpret()
+{
+	if(this->cond->interpret()) {
+		this->ifBlock->interpret();
+	} else {
+		this->elseBlock->interpret();
+	}
+}
+
+int ForStatement::interpret()
+{
+	int step = 1;
+
+	if(this->isStep)
+		step = this->step->interpret();
+	
+	int initial_val = this->start->interpret();
+	int final_val = this->end->interpret();
+
+	if(this->var->vtype == normalVar) {
+		for(normal_vars[this->var->name] = initial_val; normal_vars[this->var->name] <= final_val; normal_vars[this->var->name] += step)
+			this->forBlock->interpret();
+		
+	} else {
+		string name = this->var->name;;
+		int index;
+		if(this->var->int_index)	
+			index = this->var->int_index;
+		else if(this->var->string_index != "")
+			index = normal_vars[this->var->string_index];			
+		else
+			index = this->var->expr_index->interpret();
+			
+		for(array_vars[name][index] = initial_val; array_vars[name][index] <= final_val; array_vars[name][index] += step)
+			this->forBlock->interpret();				
+	}
+
+	return 0;
+}
+
+int WhileStatement::interpret()
+{
+	while(this->cond->interpret())
+		this->whileBlock->interpret();
+	
+	return 0;
+}
+
+int PrintLnStatement::interpret()
+{
+	cout << this->text;
+	return 0;
+}
+
+int PrintStatement::interpret()
+{	
+	cout << this->var->interpret() << endl;
+
+	
+	return 0;
+}
+
+int ReadStatement::interpret()
+{
+	if(this->var->vtype == normalVar)
+		cin >> normal_vars[this->var->name];
+	else
+		cin >> array_vars[this->var->name][this->var->expr_index->interpret()];
+	
+	return 0;
+}
+
+int LHS::interpret()
+{	
+	if(this->vtype == normalVar) {
+		return normal_vars[this->name];
+	} else {
+		string name = this->name;;
+		int index;
+		// if(this->int_index)	
+		// 	index = this->int_index;
+		// else if(this->string_index != ""){
+		// 	index = normal_vars[this->string_index];
+		// 	cout << "index = " << index << endl;
+		// }			
+		// else
+		index = this->expr_index->interpret();
+		// cout << name << "[" << index << "] = " << array_vars[name][index] << endl;
+		return array_vars[name][index];
+	}
+}
+
+int BinaryExpr::interpret()
+{
+	if(this->Op == "+") 
+		return this->first->interpret() + this->second->interpret();
+	if(this->Op == "-") 
+		return this->first->interpret() - this->second->interpret();
+	if(this->Op == "*") 
+		return this->first->interpret() * this->second->interpret();
+	if(this->Op == "/") 
+		return this->first->interpret() / this->second->interpret();
+}
+
+int UnaryExpr::interpret()
+{
+	if(this->Op == "-")
+		return -1 * this->second->interpret();
+}
+
+int BoolExpr::interpret()
+{
+	if(this->assigned)
+		return this->val;
+
+	if(this->Op == ">") {
+		// cout << this->first->interpret() << ">" << this->second->interpret() << endl;
+		if(this->first->interpret() > this->second->interpret())
+			return 1;			
+		return 0;
+	}
+
+	if(this->Op == ">=") {
+		if(this->first->interpret() >= this->second->interpret())
+			return 1;
+		return 0;
+	}
+
+	if(this->Op == "<") {
+		if(this->first->interpret() < this->second->interpret())
+			return 1;
+		return 0;
+	}
+
+	if(this->Op == "<=") {
+		if(this->first->interpret() <= this->second->interpret())
+			return 1;
+		return 0;
+	}
+
+	if(this->Op == "==") {
+		if(this->first->interpret() == this->second->interpret())
+			return 1;
+		return 0;
+	}
+
+	if(this->Op == "!=") {
+		if(this->first->interpret() != this->second->interpret())
+			return 1;
+		return 0;
+	}
+}
+
+int NormalExpr::interpret()
+{
+	if(this->lhs)
+		return this->lhs->interpret();
+
+	if(this->expr != "")
+		this->value = normal_vars[this->expr];
+
+	// cout << "HERE" << endl;
+	// cout << this->expr << endl;
+	// cout << this->value << endl;
+	// cout << "HERE_END" << endl;
+	return this->value;
+}
+
+int GoToStatement::interpret()
+{
+
 }

@@ -100,8 +100,9 @@ Statement		: Assignment { $$ = $1; }
 				| GOTO ID IF Boolean_Expr SC { $$ = new GoToStatement($2, $4);  }
 				| PRINT STRING SC { $$ = new PrintStatement($2); }
 				| PRINT STRING COMMA Vars SC { $$ = new PrintStatement($2, $4); }
+				| PRINT Lhs SC{ $$ = new PrintStatement($2); }
 				| PRINTLN STRING SC { $$ = new PrintLnStatement($2); }
-				| READ Var SC { $$ = new ReadStatement($2); }
+				| READ Lhs SC { $$ = new ReadStatement($2); }
 				;
 
 
@@ -109,9 +110,7 @@ Assignment		: Lhs EQ Expr SC { $$ = new Assignment($1, $2, $3); }
 				;
 
 Lhs				: ID { $$ = new LHS($1); }
-				| ID OSB NUM CSB { $$ = new LHS($1, $3); }
-				| ID OSB ID CSB { $$ = new LHS($1, $3);}
-				| ID OSB BinaryExpr CSB { $$ = new LHS($1, $3); }
+				| ID OSB Expr CSB {$$ = new LHS($1, $3);}			
 				;
 
 Expr 			: Lhs 	{ $$ = new NormalExpr($1); }
@@ -155,6 +154,7 @@ int main(int argc, char *argv[])
 	}
 	yyin = fopen(argv[1], "r");
 	yyparse();
+	start->interpret();
 	//start->traverse();
-	print_vars();
+	//print_vars();
 }

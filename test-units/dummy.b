@@ -6,10 +6,11 @@ declblock{
 codeblock{
 	a = 0;
 	for i = 1, 10, 3 {
-		B[i] = D[i];		
+		B[i] = 0;
+		B[i-1] = 1;
 	}
 
-L1:	while a > 0 {
+L1:	while false {
 		a = a + 1;
 	}
 
