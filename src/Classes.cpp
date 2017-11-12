@@ -437,7 +437,7 @@ LabeledStatement::LabeledStatement(string label, class Statements* statements)
 	labeled_blocks[this->label] = this->statements;
 }
 
-/* ---------------- Traversals --------------- */
+/* ---------------- Program --------------- */
 
 void Program::traverse()
 {	
@@ -450,6 +450,16 @@ void Program::traverse()
 	printTabs();
 	cout << "</program>" << endl;
 }
+
+int Program::interpret()
+{
+	this->declarations->interpret();
+	this->statements->interpret();
+
+	return 0;
+}
+
+/* ---------------- Declarations --------------- */
 
 void Declarations::traverse()
 {
@@ -465,6 +475,16 @@ void Declarations::traverse()
 	cout << "</declarations>" << endl;
 }
 
+int Declarations::interpret()
+{
+	vector<class Declaration*> declaration_list = this->declaration_list;
+	for(int i = 0; i < declaration_list.size(); i++) {
+		declaration_list[i]->interpret();
+	}	
+}
+
+/* ---------------- Declaration --------------- */
+
 void Declaration::traverse()
 {
 	printTabs();
@@ -477,6 +497,13 @@ void Declaration::traverse()
 	printTabs();
 	cout << "</declaration>" << endl;
 }
+
+int Declaration::interpret()
+{
+	this->vars->interpret();
+}
+
+/* ---------------- Vars --------------- */
 
 void Vars::traverse()
 {
@@ -493,6 +520,19 @@ void Vars::traverse()
 	cout << "</vars>" << endl;
 }
 
+int Vars::interpret()
+{
+	vector<class Var*> var_list = this->var_list;
+	
+	for(int i = 0; i < var_list.size(); i++) {
+		var_list[i]->interpret();
+	}
+
+	return 0;
+}
+
+/* ---------------- Var --------------- */
+
 void Var::traverse()
 {
 	printTabs();
@@ -502,6 +542,20 @@ void Var::traverse()
 		cout << "<var type=\"int\" name=\"" << this->name << "\"/>" << endl;
 	}
 }
+
+int Var::interpret()
+{
+	if(this->vtype == normalVar) {
+		normal_vars[this->name] = 0;
+	} else {
+		vector<int> arr(this->length, 0);
+		array_vars[this->name] = arr;
+	}
+
+	return 0;
+}
+
+/* ---------------- Statements --------------- */
 
 void Statements::traverse()
 {
@@ -519,6 +573,24 @@ void Statements::traverse()
 	cout << "</statements>" << endl;
 }
 
+int Statements::interpret()
+{
+	vector<class Statement*> statement_list = this->statement_list;
+	
+	for(int i = 0; i < statement_list.size(); i++) {
+		statement_list[i]->interpret();
+		if(statement_list[i]->isGoTo) {
+			class GoToStatement *stmnt = dynamic_cast<GoToStatement*> (statement_list[i]);
+			if(stmnt->cond->interpret())
+				break;
+		}			
+	}
+
+	return 0;
+}
+
+/* ---------------- Assignment --------------- */
+
 void Assignment::traverse()
 {
 	printTabs();
@@ -530,6 +602,33 @@ void Assignment::traverse()
 	printTabs();
 	cout << "</assignment>" << endl;
 }
+
+int Assignment::interpret()
+{	
+	if(this->lhs->vtype == normalVar) {
+		normal_vars[this->lhs->name] = this->expr->interpret();
+	} else {
+		if(this->lhs->int_index){			
+			array_vars[this->lhs->name][this->lhs->int_index] = this->expr->interpret();
+			// cout << "here1" << endl;
+		}			
+		else if(this->lhs->string_index != ""){
+			int index = normal_vars[this->lhs->string_index];			
+			array_vars[this->lhs->name][index] = this->expr->interpret();	
+			// cout << "here2" << endl;
+			// cout << normal_vars[this->expr->expr] << endl;
+			// cout << this->expr->interpret() << endl;
+		} else {
+			array_vars[this->lhs->name][this->lhs->expr_index->interpret()] = this->expr->interpret();
+			// cout << "here3" << endl;
+		}			
+		
+	}
+
+	return 0;
+}
+
+/* ---------------- LHS --------------- */
 
 void LHS::traverse()
 {
@@ -546,11 +645,53 @@ void LHS::traverse()
 	}		
 }
 
+int LHS::interpret()
+{	
+	if(this->vtype == normalVar) {
+		return normal_vars[this->name];
+	} else {
+		string name = this->name;;
+		int index;
+		// if(this->int_index)	
+		// 	index = this->int_index;
+		// else if(this->string_index != ""){
+		// 	index = normal_vars[this->string_index];
+		// 	cout << "index = " << index << endl;
+		// }			
+		// else
+		index = this->expr_index->interpret();
+		// cout << name << "[" << index << "] = " << array_vars[name][index] << endl;
+		return array_vars[name][index];
+	}
+}
+
+/* ---------------- NormalExpr --------------- */
+
 void NormalExpr::traverse()
 {
 	printTabs();
 	cout << "<normal_expr name=\"" << this->expr << "\" value=\"" << this->interpret() << "\" />" << endl;	
 }
+
+int NormalExpr::interpret()
+{
+	if(this->value_assigned == 1)
+		return this->value;
+
+	if(this->value_assigned == 2)
+		this->value = this->lhs->interpret();
+
+	else if(this->expr != "")
+		this->value = normal_vars[this->expr];
+
+	// cout << "HERE" << endl;
+	// cout << this->expr << endl;
+	// cout << this->value << endl;
+	// cout << "HERE_END" << endl;
+	return this->value;
+}
+
+/* ---------------- BinaryExpr --------------- */
 
 void BinaryExpr::traverse()
 {
@@ -576,6 +717,22 @@ void BinaryExpr::traverse()
 	printTabs();
 	cout << "</binary_expr>" << endl;
 }
+
+int BinaryExpr::interpret()
+{
+	if(this->Op == "+") 
+		return this->first->interpret() + this->second->interpret();
+	if(this->Op == "-") 
+		return this->first->interpret() - this->second->interpret();
+	if(this->Op == "*") 
+		return this->first->interpret() * this->second->interpret();
+	if(this->Op == "/") 
+		return this->first->interpret() / this->second->interpret();
+	if(this->Op == "%") 
+		return this->first->interpret() % this->second->interpret();
+}
+
+/* ---------------- BoolExpr --------------- */
 
 void BoolExpr::traverse()
 {
@@ -609,461 +766,6 @@ void BoolExpr::traverse()
 	tabs_needed--;
 	printTabs();
 	cout << "</boolean_expr>" << endl;
-}
-
-void UnaryExpr::traverse()
-{
-	printTabs();
-	cout << "<boolean_expr op=\"" << this->Op << "\" >" << endl;		
-	tabs_needed++;
-		printTabs();
-		cout << "<second>" << endl;
-		tabs_needed++;
-			this->second->traverse();
-		tabs_needed--;
-		printTabs();
-		cout << "</second>" << endl;
-	tabs_needed--;
-	printTabs();
-	cout << "</boolean_expr>" << endl;
-}
-
-void LabeledStatement::traverse()
-{
-	printTabs();
-	cout << "<labeled_stmnt label=\"" << this->label << "\">" << endl;
-	tabs_needed++;		
-		this->statements->traverse();
-	tabs_needed--;
-	printTabs();
-	cout << "</labeled_stmnt>" << endl;
-}
-
-void IfStatement::traverse()
-{
-	printTabs();
-	cout << "<if_stmnt>" << endl;
-	tabs_needed++;
-		printTabs();
-		cout << "<condition>" << endl;
-		tabs_needed++;
-			this->cond->traverse();
-		tabs_needed--;
-		printTabs();
-		cout << "</condition>" << endl;
-
-		printTabs();
-		cout << "<block>" << endl;
-		tabs_needed++;
-			this->ifBlock->traverse();
-		tabs_needed--;
-		printTabs();
-		cout << "</block>" << endl;
-	tabs_needed--;
-	printTabs();
-	cout << "</if_stmnt>" << endl;
-}
-
-void IfElseStatement::traverse()
-{
-	printTabs();
-	cout << "<if_else_stmnt>" << endl;
-	tabs_needed++;
-		printTabs();
-		cout << "<condition>" << endl;
-		tabs_needed++;
-			this->cond->traverse();
-		tabs_needed--;
-		printTabs();		
-		cout << "</condition>" << endl;
-
-		printTabs();
-		cout << "<if_block>" << endl;
-		tabs_needed++;
-			this->ifBlock->traverse();
-		tabs_needed--;
-		printTabs();
-		cout << "</if_block>" << endl;
-
-		printTabs();
-		cout << "<else_block>" << endl;
-		tabs_needed++;
-			this->elseBlock->traverse();
-		tabs_needed--;			
-		printTabs();
-		cout << "</else_block>" << endl;
-	tabs_needed--;
-	printTabs();
-	cout << "</if_else_stmnt>" << endl;
-}
-
-void ForStatement::traverse()
-{
-	printTabs();
-	cout << "<for_stmnt>" << endl;
-	tabs_needed++;
-		printTabs();
-		cout << "<looping_var>" << endl;
-		tabs_needed++;
-			this->var->traverse();
-			
-			printTabs();			
-			cout << "<start_value>" << endl;
-			tabs_needed++;
-				this->start->traverse();
-			tabs_needed--;
-			printTabs();
-			cout << "</start_value>" << endl;
-
-			printTabs();			
-			cout << "<end_value>" << endl;
-			tabs_needed++;
-				this->start->traverse();
-			tabs_needed--;
-			printTabs();
-			cout << "</end_value>" << endl;
-
-			printTabs();
-			cout << "<step_value>" << endl;
-			tabs_needed++;
-				this->start->traverse();
-			tabs_needed--;
-			printTabs();
-			cout << "</step_value>" << endl;
-		tabs_needed--;
-		printTabs();
-		cout << "</looping_var>" << endl;
-		
-		this->forBlock->traverse();
-		
-	tabs_needed--;
-	printTabs();
-	cout << "</for_stmnt>" << endl;
-}
-
-void WhileStatement::traverse()
-{
-	printTabs();
-	cout << "<while_stmnt>" << endl;
-	tabs_needed++;
-		printTabs();		
-		cout << "<condition>" << endl;
-		tabs_needed++;
-			this->cond->traverse();
-		tabs_needed--;
-		printTabs();
-		cout << "</condition>" << endl;
-
-		printTabs();
-		cout << "<block>" << endl;
-		tabs_needed++;
-			this->whileBlock->traverse();
-		tabs_needed--;
-		printTabs();
-		cout << "</block>" << endl;
-	tabs_needed--;
-	printTabs();
-	cout << "</while_stmnt>" << endl;
-}
-
-void GoToStatement::traverse()
-{
-	printTabs();
-	cout << "<goto_stmnt destination=\"" << this->label << "\">" << endl;
-	tabs_needed++;
-		printTabs();
-		cout << "<condition>" << endl;
-		tabs_needed++;
-			this->cond->traverse();
-		tabs_needed--;
-		printTabs();
-		cout << "</condition>" << endl;		
-	tabs_needed--;
-	printTabs();
-	cout << "</goto_stmnt>" << endl;
-}
-
-void PrintStatement::traverse()
-{
-	printTabs();
-	cout << "<print_stmnt>" << endl;
-	if(this->assigned){
-		tabs_needed++;
-		cout << this->text << endl;
-		if(this->lhss)		
-		for(int i = 0; i < this->lhss->lhs_list.size(); i++) {
-			this->lhss->lhs_list[i]->traverse();
-		}
-		tabs_needed--;
-	}
-	else
-		this->var->traverse();
-	printTabs();
-	cout << "</print_stmnt>" << endl;
-}
-
-void PrintLnStatement::traverse()
-{
-	printTabs();
-	cout << "<println_stmnt>" << endl;
-	printTabs();
-	cout << "</println_stmnt>" << endl;
-}
-
-void ReadStatement::traverse()
-{
-	printTabs();
-	cout << "<read_stmnt>" << endl;
-	tabs_needed++;
-	this->var->traverse();
-	tabs_needed--;
-	printTabs();
-	cout << "</read_stmnt>" << endl;
-}
-
-void print_vars()
-{
-	map<string, int> :: iterator it;
-
-	for(it = normal_vars.begin(); it != normal_vars.end(); it++) {
-		cout << it->first << " = " << it->second << endl;
-	}
-
-	map<string, vector<int>> :: iterator it1;	
-
-	for(it1 = array_vars.begin(); it1 != array_vars.end(); it1++) {
-		vector<int> x = it1->second;
-		
-		for(int i = 0; i < x.size(); i++) {
-			cout << it1->first << "[" << i << "] = " << x[i] << endl;
-		}
-	}
-}
-
-int Program::interpret()
-{
-	this->declarations->interpret();
-	this->statements->interpret();
-
-	return 0;
-}
-
-int Declarations::interpret()
-{
-	vector<class Declaration*> declaration_list = this->declaration_list;
-	for(int i = 0; i < declaration_list.size(); i++) {
-		declaration_list[i]->interpret();
-	}	
-}
-
-int Declaration::interpret()
-{
-	this->vars->interpret();
-}
-
-int Vars::interpret()
-{
-	vector<class Var*> var_list = this->var_list;
-	
-	for(int i = 0; i < var_list.size(); i++) {
-		var_list[i]->interpret();
-	}
-
-	return 0;
-}
-
-int Var::interpret()
-{
-	if(this->vtype == normalVar) {
-		normal_vars[this->name] = 0;
-	} else {
-		vector<int> arr(this->length, 0);
-		array_vars[this->name] = arr;
-	}
-
-	return 0;
-}
-
-int Statements::interpret()
-{
-	vector<class Statement*> statement_list = this->statement_list;
-	
-	for(int i = 0; i < statement_list.size(); i++) {
-		statement_list[i]->interpret();
-		if(statement_list[i]->isGoTo) {
-			class GoToStatement *stmnt = dynamic_cast<GoToStatement*> (statement_list[i]);
-			if(stmnt->cond->interpret())
-				break;
-		}			
-	}
-
-	return 0;
-}
-
-int Assignment::interpret()
-{	
-	if(this->lhs->vtype == normalVar) {
-		normal_vars[this->lhs->name] = this->expr->interpret();
-	} else {
-		if(this->lhs->int_index){			
-			array_vars[this->lhs->name][this->lhs->int_index] = this->expr->interpret();
-			// cout << "here1" << endl;
-		}			
-		else if(this->lhs->string_index != ""){
-			int index = normal_vars[this->lhs->string_index];			
-			array_vars[this->lhs->name][index] = this->expr->interpret();	
-			// cout << "here2" << endl;
-			// cout << normal_vars[this->expr->expr] << endl;
-			// cout << this->expr->interpret() << endl;
-		} else {
-			array_vars[this->lhs->name][this->lhs->expr_index->interpret()] = this->expr->interpret();
-			// cout << "here3" << endl;
-		}			
-		
-	}
-
-	return 0;
-}
-
-int LabeledStatement::interpret()
-{
-	// labeled_blocks[this->label] = this->statements;
-	this->statements->interpret();
-	return 0;
-}
-
-int IfStatement::interpret()
-{
-	if(this->cond->interpret()) {
-		this->ifBlock->interpret();
-	}
-
-	return 0;
-}
-
-int IfElseStatement::interpret()
-{
-	if(this->cond->interpret()) {
-		this->ifBlock->interpret();
-	} else {
-		this->elseBlock->interpret();
-	}
-}
-
-int ForStatement::interpret()
-{
-	int step = 1;
-
-	if(this->isStep)
-		step = this->step->interpret();
-	
-	int initial_val = this->start->interpret();
-	int final_val = this->end->interpret();
-
-	if(this->var->vtype == normalVar) {
-		for(normal_vars[this->var->name] = initial_val; normal_vars[this->var->name] <= final_val; normal_vars[this->var->name] += step)
-			this->forBlock->interpret();
-		
-	} else {
-		string name = this->var->name;;
-		int index;
-		if(this->var->int_index)	
-			index = this->var->int_index;
-		else if(this->var->string_index != "")
-			index = normal_vars[this->var->string_index];			
-		else
-			index = this->var->expr_index->interpret();
-			
-		for(array_vars[name][index] = initial_val; array_vars[name][index] <= final_val; array_vars[name][index] += step)
-			this->forBlock->interpret();				
-	}
-
-	return 0;
-}
-
-int WhileStatement::interpret()
-{
-	while(this->cond->interpret())
-		this->whileBlock->interpret();
-	
-	return 0;
-}
-
-int PrintLnStatement::interpret()
-{
-	cout << this->text.substr(1,this->text.size()-2) << endl;
-	return 0;
-}
-
-LHSs::LHSs()
-{
-
-}
-
-int PrintStatement::interpret()
-{	
-	if(this->assigned){
-		cout << this->text.substr(1,this->text.size()-2);
-		if(this->lhss)
-		for(int i = 0; i < this->lhss->lhs_list.size(); i++) {
-			cout << this->lhss->lhs_list[i]->interpret() << endl;
-		}
-		else 
-		cout << endl;
-	}
-	else
-		cout << this->var->interpret() << endl;
-	return 0;
-}
-
-int ReadStatement::interpret()
-{
-	if(this->var->vtype == normalVar)
-		cin >> normal_vars[this->var->name];
-	else
-		cin >> array_vars[this->var->name][this->var->expr_index->interpret()];
-	
-	return 0;
-}
-
-int LHS::interpret()
-{	
-	if(this->vtype == normalVar) {
-		return normal_vars[this->name];
-	} else {
-		string name = this->name;;
-		int index;
-		// if(this->int_index)	
-		// 	index = this->int_index;
-		// else if(this->string_index != ""){
-		// 	index = normal_vars[this->string_index];
-		// 	cout << "index = " << index << endl;
-		// }			
-		// else
-		index = this->expr_index->interpret();
-		// cout << name << "[" << index << "] = " << array_vars[name][index] << endl;
-		return array_vars[name][index];
-	}
-}
-
-int BinaryExpr::interpret()
-{
-	if(this->Op == "+") 
-		return this->first->interpret() + this->second->interpret();
-	if(this->Op == "-") 
-		return this->first->interpret() - this->second->interpret();
-	if(this->Op == "*") 
-		return this->first->interpret() * this->second->interpret();
-	if(this->Op == "/") 
-		return this->first->interpret() / this->second->interpret();
-	if(this->Op == "%") 
-		return this->first->interpret() % this->second->interpret();
-}
-
-int UnaryExpr::interpret()
-{
-	if(this->Op == "-")
-		return -1 * this->second->interpret();
 }
 
 int BoolExpr::interpret()
@@ -1109,22 +811,260 @@ int BoolExpr::interpret()
 	}
 }
 
-int NormalExpr::interpret()
+/* ---------------- UnaryExpr --------------- */
+
+void UnaryExpr::traverse()
 {
-	if(this->value_assigned == 1)
-		return this->value;
+	printTabs();
+	cout << "<boolean_expr op=\"" << this->Op << "\" >" << endl;		
+	tabs_needed++;
+		printTabs();
+		cout << "<second>" << endl;
+		tabs_needed++;
+			this->second->traverse();
+		tabs_needed--;
+		printTabs();
+		cout << "</second>" << endl;
+	tabs_needed--;
+	printTabs();
+	cout << "</boolean_expr>" << endl;
+}
 
-	if(this->value_assigned == 2)
-		this->value = this->lhs->interpret();
+int UnaryExpr::interpret()
+{
+	if(this->Op == "-")
+		return -1 * this->second->interpret();
+}
 
-	else if(this->expr != "")
-		this->value = normal_vars[this->expr];
+/* ---------------- LabeledStatement --------------- */
 
-	// cout << "HERE" << endl;
-	// cout << this->expr << endl;
-	// cout << this->value << endl;
-	// cout << "HERE_END" << endl;
-	return this->value;
+void LabeledStatement::traverse()
+{
+	printTabs();
+	cout << "<labeled_stmnt label=\"" << this->label << "\">" << endl;
+	tabs_needed++;		
+		this->statements->traverse();
+	tabs_needed--;
+	printTabs();
+	cout << "</labeled_stmnt>" << endl;
+}
+
+int LabeledStatement::interpret()
+{
+	// labeled_blocks[this->label] = this->statements;
+	this->statements->interpret();
+	return 0;
+}
+
+/* ---------------- IfStatement --------------- */
+
+void IfStatement::traverse()
+{
+	printTabs();
+	cout << "<if_stmnt>" << endl;
+	tabs_needed++;
+		printTabs();
+		cout << "<condition>" << endl;
+		tabs_needed++;
+			this->cond->traverse();
+		tabs_needed--;
+		printTabs();
+		cout << "</condition>" << endl;
+
+		printTabs();
+		cout << "<block>" << endl;
+		tabs_needed++;
+			this->ifBlock->traverse();
+		tabs_needed--;
+		printTabs();
+		cout << "</block>" << endl;
+	tabs_needed--;
+	printTabs();
+	cout << "</if_stmnt>" << endl;
+}
+
+int IfStatement::interpret()
+{
+	if(this->cond->interpret()) {
+		this->ifBlock->interpret();
+	}
+
+	return 0;
+}
+
+/* ---------------- IfElseStatement --------------- */
+
+void IfElseStatement::traverse()
+{
+	printTabs();
+	cout << "<if_else_stmnt>" << endl;
+	tabs_needed++;
+		printTabs();
+		cout << "<condition>" << endl;
+		tabs_needed++;
+			this->cond->traverse();
+		tabs_needed--;
+		printTabs();		
+		cout << "</condition>" << endl;
+
+		printTabs();
+		cout << "<if_block>" << endl;
+		tabs_needed++;
+			this->ifBlock->traverse();
+		tabs_needed--;
+		printTabs();
+		cout << "</if_block>" << endl;
+
+		printTabs();
+		cout << "<else_block>" << endl;
+		tabs_needed++;
+			this->elseBlock->traverse();
+		tabs_needed--;			
+		printTabs();
+		cout << "</else_block>" << endl;
+	tabs_needed--;
+	printTabs();
+	cout << "</if_else_stmnt>" << endl;
+}
+
+int IfElseStatement::interpret()
+{
+	if(this->cond->interpret()) {
+		this->ifBlock->interpret();
+	} else {
+		this->elseBlock->interpret();
+	}
+}
+
+/* ---------------- ForStatement --------------- */
+
+void ForStatement::traverse()
+{
+	printTabs();
+	cout << "<for_stmnt>" << endl;
+	tabs_needed++;
+		printTabs();
+		cout << "<looping_var>" << endl;
+		tabs_needed++;
+			this->var->traverse();
+			
+			printTabs();			
+			cout << "<start_value>" << endl;
+			tabs_needed++;
+				this->start->traverse();
+			tabs_needed--;
+			printTabs();
+			cout << "</start_value>" << endl;
+
+			printTabs();			
+			cout << "<end_value>" << endl;
+			tabs_needed++;
+				this->start->traverse();
+			tabs_needed--;
+			printTabs();
+			cout << "</end_value>" << endl;
+
+			printTabs();
+			cout << "<step_value>" << endl;
+			tabs_needed++;
+				this->start->traverse();
+			tabs_needed--;
+			printTabs();
+			cout << "</step_value>" << endl;
+		tabs_needed--;
+		printTabs();
+		cout << "</looping_var>" << endl;
+		
+		this->forBlock->traverse();
+		
+	tabs_needed--;
+	printTabs();
+	cout << "</for_stmnt>" << endl;
+}
+
+int ForStatement::interpret()
+{
+	int step = 1;
+
+	if(this->isStep)
+		step = this->step->interpret();
+	
+	int initial_val = this->start->interpret();
+	int final_val = this->end->interpret();
+
+	if(this->var->vtype == normalVar) {
+		for(normal_vars[this->var->name] = initial_val; normal_vars[this->var->name] <= final_val; normal_vars[this->var->name] += step)
+			this->forBlock->interpret();
+		
+	} else {
+		string name = this->var->name;;
+		int index;
+		if(this->var->int_index)	
+			index = this->var->int_index;
+		else if(this->var->string_index != "")
+			index = normal_vars[this->var->string_index];			
+		else
+			index = this->var->expr_index->interpret();
+			
+		for(array_vars[name][index] = initial_val; array_vars[name][index] <= final_val; array_vars[name][index] += step)
+			this->forBlock->interpret();				
+	}
+
+	return 0;
+}
+
+/* ---------------- WhileStatement --------------- */
+
+void WhileStatement::traverse()
+{
+	printTabs();
+	cout << "<while_stmnt>" << endl;
+	tabs_needed++;
+		printTabs();		
+		cout << "<condition>" << endl;
+		tabs_needed++;
+			this->cond->traverse();
+		tabs_needed--;
+		printTabs();
+		cout << "</condition>" << endl;
+
+		printTabs();
+		cout << "<block>" << endl;
+		tabs_needed++;
+			this->whileBlock->traverse();
+		tabs_needed--;
+		printTabs();
+		cout << "</block>" << endl;
+	tabs_needed--;
+	printTabs();
+	cout << "</while_stmnt>" << endl;
+}
+
+int WhileStatement::interpret()
+{
+	while(this->cond->interpret())
+		this->whileBlock->interpret();
+	
+	return 0;
+}
+
+/* ---------------- GoToStatement --------------- */
+
+void GoToStatement::traverse()
+{
+	printTabs();
+	cout << "<goto_stmnt destination=\"" << this->label << "\">" << endl;
+	tabs_needed++;
+		printTabs();
+		cout << "<condition>" << endl;
+		tabs_needed++;
+			this->cond->traverse();
+		tabs_needed--;
+		printTabs();
+		cout << "</condition>" << endl;		
+	tabs_needed--;
+	printTabs();
+	cout << "</goto_stmnt>" << endl;
 }
 
 int GoToStatement::interpret()
@@ -1134,4 +1074,105 @@ int GoToStatement::interpret()
 		// cout << "Label  " << label << endl;
 		labeled_blocks[label]->interpret();
 	}
+}
+
+/* ---------------- PrintStatement --------------- */
+
+void PrintStatement::traverse()
+{
+	printTabs();
+	cout << "<print_stmnt>" << endl;
+	if(this->assigned){
+		tabs_needed++;
+		cout << this->text << endl;
+		if(this->lhss)		
+		for(int i = 0; i < this->lhss->lhs_list.size(); i++) {
+			this->lhss->lhs_list[i]->traverse();
+		}
+		tabs_needed--;
+	}
+	else
+		this->var->traverse();
+	printTabs();
+	cout << "</print_stmnt>" << endl;
+}
+
+int PrintStatement::interpret()
+{	
+	if(this->assigned){
+		cout << this->text.substr(1,this->text.size()-2);
+		if(this->lhss)
+		for(int i = 0; i < this->lhss->lhs_list.size(); i++) {
+			cout << this->lhss->lhs_list[i]->interpret() << endl;
+		}
+		else 
+		cout << endl;
+	}
+	else
+		cout << this->var->interpret() << endl;
+	return 0;
+}
+
+/* ---------------- PrintLnStatement --------------- */
+
+void PrintLnStatement::traverse()
+{
+	printTabs();
+	cout << "<println_stmnt>" << endl;
+	printTabs();
+	cout << "</println_stmnt>" << endl;
+}
+
+int PrintLnStatement::interpret()
+{
+	cout << this->text.substr(1,this->text.size()-2) << endl;
+	return 0;
+}
+
+/* ---------------- ReadStatement --------------- */
+
+void ReadStatement::traverse()
+{
+	printTabs();
+	cout << "<read_stmnt>" << endl;
+	tabs_needed++;
+	this->var->traverse();
+	tabs_needed--;
+	printTabs();
+	cout << "</read_stmnt>" << endl;
+}
+
+int ReadStatement::interpret()
+{
+	if(this->var->vtype == normalVar)
+		cin >> normal_vars[this->var->name];
+	else
+		cin >> array_vars[this->var->name][this->var->expr_index->interpret()];
+	
+	return 0;
+}
+
+
+void print_vars()
+{
+	map<string, int> :: iterator it;
+
+	for(it = normal_vars.begin(); it != normal_vars.end(); it++) {
+		cout << it->first << " = " << it->second << endl;
+	}
+
+	map<string, vector<int>> :: iterator it1;	
+
+	for(it1 = array_vars.begin(); it1 != array_vars.end(); it1++) {
+		vector<int> x = it1->second;
+		
+		for(int i = 0; i < x.size(); i++) {
+			cout << it1->first << "[" << i << "] = " << x[i] << endl;
+		}
+	}
+}
+
+LHSs::LHSs()
+{
+
 }
