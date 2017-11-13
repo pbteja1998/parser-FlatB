@@ -116,6 +116,7 @@ class Statement:public AstNode {
 	private:
 		
 	public:
+		bool isGoTo;
 		StatementType stype; /* Assignment, For, While, GoTo, If, If Else */		
 		virtual void traverse(){};
 		virtual int interpret(){};

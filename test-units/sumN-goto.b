@@ -1,6 +1,5 @@
 declblock{
-	int data[100];
-	int i, sum;
+	int data[100],i,sum;
 }
 
 codeblock{
@@ -8,16 +7,16 @@ codeblock{
 
 L1:	data[i] = i ;
 	i = i + 1;
-	print i;
+	println "early print";
 	goto L2;
-	println "here";
+	println "never print";
 
 	sum = 0;
 	sum = sum + data[i-2];
 	i = i + 1;
 
-L2:	goto L1 if i > 5;
-	println "here22";
+L2:	goto L1 if i < 5;
+	println "late print";
 	i = i + 1;
 	a = 0;
 

@@ -125,6 +125,7 @@ vector<class Statement*> Statements::getStmtList()
 
 Assignment::Assignment(class LHS* lhs, string Op, class Expr* expr)
 {
+	this->isGoTo = 0;
 	this->lhs = lhs;
 	this->Op = Op;
 	this->expr = expr;
@@ -189,12 +190,14 @@ void LHSs::pushes_back(class LHS *lhs)
 
 IfStatement::IfStatement(BoolExpr* bool_expr, Statements* block)
 {
+	this->isGoTo = 0;
 	this->cond = bool_expr;
 	this->ifBlock = block;
 }
 
 IfElseStatement::IfElseStatement(BoolExpr* bool_expr, Statements* block1, Statements* block2)
 {
+	this->isGoTo = 0;
 	this->cond = bool_expr;
 	this->ifBlock = block1;
 	this->elseBlock = block2;
@@ -202,6 +205,7 @@ IfElseStatement::IfElseStatement(BoolExpr* bool_expr, Statements* block1, Statem
 
 ForStatement::ForStatement(LHS* lhs, Expr* start, Expr* end, Statements* block)
 {
+	this->isGoTo = 0;
 	this->isStep = 0;
 	this->var = lhs;
 	this->start = start;
@@ -212,6 +216,7 @@ ForStatement::ForStatement(LHS* lhs, Expr* start, Expr* end, Statements* block)
 
 ForStatement::ForStatement(LHS* lhs, Expr* start, Expr* end, Expr* step, Statements* block)
 {
+	this->isGoTo = 0;
 	this->isStep = 1;
 	this->var = lhs;
 	this->start = start;
@@ -222,30 +227,35 @@ ForStatement::ForStatement(LHS* lhs, Expr* start, Expr* end, Expr* step, Stateme
 
 WhileStatement::WhileStatement(BoolExpr* bool_expr, Statements* block)
 {
+	this->isGoTo = 0;
 	this->cond = bool_expr;
 	this->whileBlock = block;
 }
 
 GoToStatement::GoToStatement(string label)
 {
+	this->isGoTo = 1;
 	this->label = label;
 	this->cond = new BoolExpr(1);
 }
 
 GoToStatement::GoToStatement(string label, BoolExpr* expr)
 {
+	this->isGoTo = 1;
 	this->label = label;
 	this->cond = expr;
 }
 
 PrintStatement::PrintStatement(string text)
 {
+	this->isGoTo = 0;
 	this->assigned = 1;
 	this->text = text;
 }
 
 PrintStatement::PrintStatement(string text, class LHSs* lhss)
 {
+	this->isGoTo = 0;
 	this->assigned = 1;
 	this->text = text;
 	this->lhss = lhss;
@@ -253,17 +263,20 @@ PrintStatement::PrintStatement(string text, class LHSs* lhss)
 
 PrintStatement::PrintStatement(class LHS* var)
 {
+	this->isGoTo = 0;
 	this->assigned = 0;
 	this->var = var;
 }
 
 PrintLnStatement::PrintLnStatement(string text)
 {
+	this->isGoTo = 0;
 	this->text = text;
 }
 
 ReadStatement::ReadStatement(class LHS* var)
 {
+	this->isGoTo = 0;
 	this->var = var;
 }
 
@@ -403,6 +416,7 @@ Block::Block(class Statements* sts)
 
 LabeledStatement::LabeledStatement(string label, class Statements* statements)
 {
+	this->isGoTo = 0;
 	this->label = label;
 	this->statements = statements;
 	labeled_blocks[this->label] = this->statements;
@@ -816,6 +830,11 @@ int Statements::interpret()
 	
 	for(int i = 0; i < statement_list.size(); i++) {
 		statement_list[i]->interpret();
+		if(statement_list[i]->isGoTo) {
+			class GoToStatement *stmnt = dynamic_cast<GoToStatement*> (statement_list[i]);
+			if(stmnt->cond->interpret())
+				break;
+		}			
 	}
 
 	return 0;

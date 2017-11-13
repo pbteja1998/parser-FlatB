@@ -68,17 +68,17 @@ string (\\n|\\t|\\'|\\\\|\\\"|[^\\"'])
 								yylval.number = atoi(yytext);
 								printf("(NUMBER)%s ", yytext);
 								return NUM; 
-							}							
-{alpha}{alphaNumeric}* 		{ 
-								yylval.value = strdup(yytext);
-								printf("(ID)%s ", yytext);
-								return ID; 
 							}
 {alpha}{alphaNumeric}*[:]	{			
 								yylval.value = strdup(yytext);						
 								printf("(LABEL)%s ", yytext);
 								return LABEL;
-							}														
+							}																		
+{alpha}{alphaNumeric}* 		{ 
+								yylval.value = strdup(yytext);
+								printf("(ID)%s ", yytext);
+								return ID; 
+							}										
 \"{string}*\" 				{ 
 								yylval.value = strdup(yytext);
 								printf("(STRING)%s ", yytext);
