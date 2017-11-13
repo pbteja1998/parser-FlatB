@@ -1,5 +1,5 @@
 declblock{
-	int a, B[100], D[50], e;
+	int a, B[11], D[11], e;
 }
 
 codeblock{
@@ -20,9 +20,9 @@ L1:	while false {
 		B[0] = B[0] + 1;
 	}
 
-	print "Hi, this is test program", a, B[0];
+	print "Hi, this is test program \n", a, B[0];
 
-	println "This is a new line";
+	println "This is a new line\n";
 
 	read e;
 }

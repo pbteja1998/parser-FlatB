@@ -91,7 +91,7 @@ Stat_List		: { $$ = new Statements(); }
 
 
 Statement		: Assignment { $$ = $1; }
-				| LABEL Statement { $$ = new LabeledStatement($1, $2); }
+				| LABEL Stat_List { $$ = new LabeledStatement($1, $2); }
 				| IF Boolean_Expr OB Stat_List CB { $$ = new IfStatement($2, $4); }
 				| IF Boolean_Expr OB Stat_List CB ELSE OB Stat_List CB { $$ = new IfElseStatement($2, $4, $8); }
 				| FOR Lhs EQ Expr COMMA Expr OB Stat_List CB { $$ = new ForStatement($2, $4, $6, $8); }
@@ -160,7 +160,11 @@ int main(int argc, char *argv[])
 	}
 	yyin = fopen(argv[1], "r");
 	yyparse();
-	start->interpret();
-	//start->traverse();
-	//print_vars();
+
+	cout << "--------Interpreter------------" << endl;
+	start->interpret();	
+	cout << "--------Traversals-------------" << endl;
+	start->traverse();
+	cout << "--------All Vars---------------" << endl;
+	print_vars();
 }

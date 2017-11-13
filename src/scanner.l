@@ -74,7 +74,7 @@ string (\\n|\\t|\\'|\\\\|\\\"|[^\\"'])
 								printf("(ID)%s ", yytext);
 								return ID; 
 							}
-{alpha}{alphaNumeric}*[" "]*[:]	{			
+{alpha}{alphaNumeric}*[:]	{			
 								yylval.value = strdup(yytext);						
 								printf("(LABEL)%s ", yytext);
 								return LABEL;

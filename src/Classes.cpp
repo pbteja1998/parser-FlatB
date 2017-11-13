@@ -15,6 +15,8 @@ map<string,int> array_defs;
 //arr name, arr values
 map<string, vector<int>> array_vars;
 
+map<string, class Statements*> labeled_blocks;
+
 int tabs_needed = 0;
 const int tab_width = 4;
 
@@ -267,6 +269,7 @@ ReadStatement::ReadStatement(class LHS* var)
 
 NormalExpr::NormalExpr(int value)
 {
+	this->value_assigned = 1;
 	this->setVal(value);
 	enum ExprType type = normal;
 	this->etype = type;
@@ -276,6 +279,7 @@ NormalExpr::NormalExpr(int value)
 
 NormalExpr::NormalExpr(LHS* lhs)
 {
+	this->value_assigned = 2;
 	this->lhs = lhs;
 	// cout << endl;
 	// cout << lhs->name << "[" << lhs->int_index << "]" << " = " << lhs->value << endl;
@@ -396,10 +400,10 @@ Block::Block(class Statements* sts)
 	this->setStmtList(sts->getStmtList());
 }
 
-LabeledStatement::LabeledStatement(string label, class Statement* statement)
+LabeledStatement::LabeledStatement(string label, class Statements* statements)
 {
 	this->label = label;
-	this->statement = statement;	
+	this->statements = statements;	
 }
 
 /* ---------------- Traversals --------------- */
@@ -475,17 +479,19 @@ void LHS::traverse()
 	if(this->vtype == normalVar)
 		cout << "<LHS type=\"int\" name=\"" << this->name << "\" />" << endl;
 	else{
-		if(this->int_index)
-			cout << "<LHS type=\"array_int\" name=\"" << this->name << "\" index=\"" << this->int_index << "\" />" << endl;
-		else if(this->string_index != "")
-			cout << "<LHS type=\"array_int\" name=\"" << this->name << "\" index=\"" << this->string_index << "\" />" << endl;
+		// if(this->int_index)
+		// 	cout << "<LHS type=\"array_int\" name=\"" << this->name << "\" index=\"" << this->int_index << "\" />" << endl;
+		// else if(this->string_index != "")
+		// 	cout << "<LHS type=\"array_int\" name=\"" << this->name << "\" index=\"" << this->string_index << "\" />" << endl;
+		// else
+			cout << "<LHS type=\"array_int\" name=\"" << this->name << "\" index=\"" << this-expr_index->interpret() << "\" />" << endl;
 	}		
 }
 
 void NormalExpr::traverse()
 {
 	printTabs();
-	cout << "<normal_expr name=\"" << this->expr << "\" value=\"" << this->value << "\" />" << endl;	
+	cout << "<normal_expr name=\"" << this->expr << "\" value=\"" << this->interpret() << "\" />" << endl;	
 }
 
 void BinaryExpr::traverse()
@@ -515,6 +521,15 @@ void BinaryExpr::traverse()
 
 void BoolExpr::traverse()
 {
+	if(this->assigned){
+		printTabs();
+		cout << "<boolean_expr value=\"" << this->val << "\" >" << endl;		
+
+		printTabs();
+		cout << "</boolean_expr>" << endl;
+		return;
+	}		
+
 	printTabs();
 	cout << "<boolean_expr op=\"" << this->Op << "\" >" << endl;
 	tabs_needed++;
@@ -559,8 +574,8 @@ void LabeledStatement::traverse()
 {
 	printTabs();
 	cout << "<labeled_stmnt label=\"" << this->label << "\">" << endl;
-	tabs_needed++;
-		this->statement->traverse();
+	tabs_needed++;		
+		this->statements->traverse();
 	tabs_needed--;
 	printTabs();
 	cout << "</labeled_stmnt>" << endl;
@@ -823,7 +838,8 @@ int Assignment::interpret()
 
 int LabeledStatement::interpret()
 {
-	this->statement->interpret();
+	labeled_blocks[this->label] = this->statements;
+	this->statements->interpret();
 	return 0;
 }
 
@@ -1003,10 +1019,13 @@ int BoolExpr::interpret()
 
 int NormalExpr::interpret()
 {
-	if(this->lhs)
-		return this->lhs->interpret();
+	if(this->value_assigned == 1)
+		return this->value;
 
-	if(this->expr != "")
+	if(this->value_assigned == 2)
+		this->value = this->lhs->interpret();
+
+	else if(this->expr != "")
 		this->value = normal_vars[this->expr];
 
 	// cout << "HERE" << endl;
@@ -1018,5 +1037,9 @@ int NormalExpr::interpret()
 
 int GoToStatement::interpret()
 {
-
+	if(this->cond->interpret()) {
+		string label = this->label + ":";
+		cout << "Label  " << label << endl;
+		labeled_blocks[label]->interpret();
+	}
 }

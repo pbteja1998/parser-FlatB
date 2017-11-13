@@ -256,6 +256,7 @@ class GoToStatement:public Statement {
 	private:
 	public:
 		string label;
+		bool isCond;
 		class BoolExpr* cond; /* If Conditional Goto */
 		GoToStatement(string, BoolExpr*);
 		GoToStatement(string);
@@ -268,8 +269,8 @@ class LabeledStatement:public Statement {
 	private:
 	public:
 		string label;
-		class Statement* statement;
-		LabeledStatement(string, class Statement*);
+		class Statements* statements;
+		LabeledStatement(string, class Statements*);
 		void traverse();
 		int interpret();
 };
@@ -329,7 +330,8 @@ class Expr:public AstNode {
 };
 
 class NormalExpr:public Expr {
-	public:
+public:
+		int value_assigned; /*1 if it is a NUM , 2 if it is LHS*/
 		class LHS* lhs;
 		NormalExpr(int);
 		NormalExpr(LHS*);

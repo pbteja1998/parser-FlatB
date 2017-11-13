@@ -8,15 +8,15 @@ codeblock{
 
 L1:	data[i] = i ;
 	i = i + 1;
-	goto L1 if i < 100;
+	print i;
+	goto L1 if i < 5;
 	
 
 	sum = 0;
-	i = 0;
 	sum = sum + data[i-2];
 	i = i + 1;
 
-L2  :	goto L1 if i < 100;
+L2:	goto L1 if i < 5;
 	i = i + 1;
 	a = 0;
 
