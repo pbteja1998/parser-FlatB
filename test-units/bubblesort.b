@@ -3,7 +3,10 @@ declblock{
     int A[100], i, j;
 }
 codeblock{  
+    print "size of array";
     read n;
+
+    print "Read array variables";
     for i = 0, n-1 {
         read A[i];
     }
@@ -17,7 +20,7 @@ codeblock{
             }
         }
     }
-
+    print "sorted array";
     for i = 0, n-1 {
         print A[i];        
     }

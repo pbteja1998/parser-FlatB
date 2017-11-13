@@ -168,6 +168,6 @@ int main(int argc, char *argv[])
 	start->traverse();
 	cout << "--------Interpreter------------" << endl;
 	start->interpret();	
-	cout << "--------All Vars---------------" << endl;
-	print_vars();
+	//cout << "--------All Vars---------------" << endl;
+	//print_vars();
 }

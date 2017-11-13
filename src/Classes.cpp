@@ -852,7 +852,7 @@ int Declarations::interpret()
 {
 	vector<class Declaration*> declaration_list = this->declaration_list;
 	for(int i = 0; i < declaration_list.size(); i++) {
-		declaration_list[i]->traverse();
+		declaration_list[i]->interpret();
 	}	
 }
 
@@ -991,7 +991,7 @@ int WhileStatement::interpret()
 
 int PrintLnStatement::interpret()
 {
-	cout << this->text << endl;
+	cout << this->text.substr(1,this->text.size()-2) << endl;
 	return 0;
 }
 
@@ -1003,7 +1003,7 @@ LHSs::LHSs()
 int PrintStatement::interpret()
 {	
 	if(this->assigned){
-		cout << this->text;
+		cout << this->text.substr(1,this->text.size()-2);
 		if(this->lhss)
 		for(int i = 0; i < this->lhss->lhs_list.size(); i++) {
 			cout << this->lhss->lhs_list[i]->interpret() << endl;
