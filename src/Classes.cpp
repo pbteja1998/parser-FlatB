@@ -403,7 +403,8 @@ Block::Block(class Statements* sts)
 LabeledStatement::LabeledStatement(string label, class Statements* statements)
 {
 	this->label = label;
-	this->statements = statements;	
+	this->statements = statements;
+	labeled_blocks[this->label] = this->statements;
 }
 
 /* ---------------- Traversals --------------- */
@@ -838,7 +839,7 @@ int Assignment::interpret()
 
 int LabeledStatement::interpret()
 {
-	labeled_blocks[this->label] = this->statements;
+	// labeled_blocks[this->label] = this->statements;
 	this->statements->interpret();
 	return 0;
 }
@@ -1039,7 +1040,7 @@ int GoToStatement::interpret()
 {
 	if(this->cond->interpret()) {
 		string label = this->label + ":";
-		cout << "Label  " << label << endl;
+		// cout << "Label  " << label << endl;
 		labeled_blocks[label]->interpret();
 	}
 }

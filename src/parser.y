@@ -161,10 +161,10 @@ int main(int argc, char *argv[])
 	yyin = fopen(argv[1], "r");
 	yyparse();
 
-	cout << "--------Interpreter------------" << endl;
-	start->interpret();	
 	cout << "--------Traversals-------------" << endl;
 	start->traverse();
+	cout << "--------Interpreter------------" << endl;
+	start->interpret();	
 	cout << "--------All Vars---------------" << endl;
 	print_vars();
 }
