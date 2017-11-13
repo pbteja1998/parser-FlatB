@@ -33,9 +33,10 @@
 
 /* ------------- Non-Terminal Types	------------- */
 %type <program> Program
-%type <vars> Decl_Block
+%type <declarations> Decl_List
+%type <declaration> Declaration
+%type <declarations> Decl_Block
 %type <statements> Code_Block
-%type <vars> Decl_List
 %type <vars> Vars
 %type <var> Var
 %type <expr> Expr
@@ -58,10 +59,12 @@ Program			: Decl_Block Code_Block {
 Decl_Block		: DLB OB Decl_List CB { $$ = $3; }
 				;
 
-Decl_List		: { $$ = new Vars(); }						
-				| Decl_List INT Vars SC { $$->pushes_back($3); }
+Decl_List		: { $$ = new Declarations(); }
+				| Decl_List Declaration { $$->pushes_back($2); }
 				;
 
+Declaration		: INT Vars SC { $$ = new Declaration($2); }
+				;
 
 Vars 			: Var {$$ = new Vars(); $$->pushes_back($1);}
 				| Vars COMMA Var {$$->pushes_back($3);}

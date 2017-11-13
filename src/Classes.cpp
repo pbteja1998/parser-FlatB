@@ -27,10 +27,25 @@ void printTabs(){
   }
 }
 
-Program::Program(class Vars* vars, class Statements* statements)
+Program::Program(class Declarations* declarations, class Statements* statements)
+{
+	this->declarations = declarations;
+	this->statements = statements;
+}
+
+Declarations::Declarations()
+{
+
+}
+
+void Declarations::pushes_back(class Declaration* declaration)
+{
+	this->declaration_list.push_back(declaration);
+}
+
+Declaration::Declaration(class Vars* vars)
 {
 	this->vars = vars;
-	this->statements = statements;
 }
 
 Vars::Vars(class Vars* vars)
@@ -429,11 +444,38 @@ void Program::traverse()
 	printTabs();
 	cout << "<program>" << endl;
 	tabs_needed++;
-	this->vars->traverse();
+	this->declarations->traverse();
 	this->statements->traverse();
 	tabs_needed--;
 	printTabs();
 	cout << "</program>" << endl;
+}
+
+void Declarations::traverse()
+{
+	printTabs();
+	cout << "<declarations count=" << this->declaration_list.size() << ">" << endl;
+	tabs_needed++;
+
+	for(int i = 0; i < this->declaration_list.size(); i++) {
+		this->declaration_list[i]->traverse();
+	}
+	tabs_needed--;
+	printTabs();
+	cout << "</declarations>" << endl;
+}
+
+void Declaration::traverse()
+{
+	printTabs();
+	cout << "<declaration>" << endl;
+	tabs_needed++;
+
+	this->vars->traverse();
+	
+	tabs_needed--;
+	printTabs();
+	cout << "</declaration>" << endl;
 }
 
 void Vars::traverse()
@@ -770,6 +812,9 @@ void ReadStatement::traverse()
 {
 	printTabs();
 	cout << "<read_stmnt>" << endl;
+	tabs_needed++;
+	this->var->traverse();
+	tabs_needed--;
 	printTabs();
 	cout << "</read_stmnt>" << endl;
 }
@@ -795,10 +840,23 @@ void print_vars()
 
 int Program::interpret()
 {
-	this->vars->interpret();
+	this->declarations->interpret();
 	this->statements->interpret();
 
 	return 0;
+}
+
+int Declarations::interpret()
+{
+	vector<class Declaration*> declaration_list = this->declaration_list;
+	for(int i = 0; i < declaration_list.size(); i++) {
+		declaration_list[i]->traverse();
+	}	
+}
+
+int Declaration::interpret()
+{
+	this->vars->interpret();
 }
 
 int Vars::interpret()

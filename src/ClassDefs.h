@@ -10,6 +10,8 @@ union Node{
 	int number;
 	char *value;
 	class Program* program;
+	class Declarations* declarations;
+	class Declaration* declaration;
 	class Vars* vars;
 	class Var* var;
 	class Expr* expr;
@@ -26,6 +28,8 @@ union Node{
 		number = 0;
 		value = NULL;
 		program = NULL;
+		declarations = NULL;
+		declaration = NULL;
 		vars = NULL;
 		var = NULL;
 		expr = NULL;
@@ -47,6 +51,8 @@ typedef union Node YYSTYPE;
 /*---------- Classes -------------- */
 class AstNode;
 class Program;
+class Declarations;
+class Declaration;
 class Vars;
 class Var;
 class Statements;
@@ -140,9 +146,30 @@ class Statements:public AstNode {
 class Program:public AstNode {
 	private:
 	public:
-		class Vars* vars;
+		class Declarations* declarations;
 		class Statements* statements;
-		Program(class Vars*, class Statements*);
+		Program(class Declarations*, class Statements*);
+		void traverse();
+		int interpret();
+};
+
+class Declarations:public AstNode {
+	private:
+		vector<class Declaration*> declaration_list;
+		int count;
+	public:
+		Declarations();
+		void pushes_back(class Declaration*);
+		vector<class Declaration*> getDeclList();
+		void setDeclList(vector<class Declaration*>);
+		void traverse();
+		int interpret();
+};
+	
+class Declaration: public AstNode {
+	public:
+		class Vars* vars;
+		Declaration(class Vars*);
 		void traverse();
 		int interpret();
 };
