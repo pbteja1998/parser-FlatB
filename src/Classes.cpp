@@ -789,6 +789,8 @@ void PrintStatement::traverse()
 	cout << "<print_stmnt>" << endl;
 	if(this->assigned){
 		tabs_needed++;
+		cout << this->text << endl;
+		if(this->lhss)		
 		for(int i = 0; i < this->lhss->lhs_list.size(); i++) {
 			this->lhss->lhs_list[i]->traverse();
 		}
@@ -1002,9 +1004,12 @@ int PrintStatement::interpret()
 {	
 	if(this->assigned){
 		cout << this->text;
+		if(this->lhss)
 		for(int i = 0; i < this->lhss->lhs_list.size(); i++) {
 			cout << this->lhss->lhs_list[i]->interpret() << endl;
 		}
+		else 
+		cout << endl;
 	}
 	else
 		cout << this->var->interpret() << endl;

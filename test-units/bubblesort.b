@@ -19,6 +19,6 @@ codeblock{
     }
 
     for i = 0, n-1 {
-        print A[i];
+        print A[i];        
     }
 }
