@@ -314,18 +314,19 @@ BinaryExpr::BinaryExpr(class Expr* first, string Op, class Expr* second)
 	this->Op = Op;
 	this->second = second;
 	// cout << endl << "printing Op  " << Op << endl;
-	if(this->Op == "+") {		
-		this->setVal(this->first->getVal() + this->second->getVal());
-	} else if(this->Op == "-") {
-		this->setVal(this->first->getVal() - this->second->getVal());
-	} else if(this->Op == "*") {
-		this->setVal(this->first->getVal() * this->second->getVal());
-	} else if(this->Op == "/") {
-		this->setVal(this->first->getVal() / this->second->getVal());
-	} else if(this->Op == "%") {
-		cout << "here" << endl;
-		this->setVal(this->first->getVal() % this->second->getVal());
-	} 
+	// if(this->Op == "+") {		
+	// 	this->setVal(this->first->getVal() + this->second->getVal());
+	// } else if(this->Op == "-") {
+	// 	this->setVal(this->first->getVal() - this->second->getVal());
+	// } else if(this->Op == "*") {
+	// 	this->setVal(this->first->getVal() * this->second->getVal());
+	// } else if(this->Op == "/") {
+	// 	this->setVal(this->first->getVal() / this->second->getVal());
+	// } else if(this->Op == "%%") {
+	// 	// cout << "here" << endl;
+	// 	cout << this->first->getVal() << " %% " << this->second->getVal() << " = " << this->first->getVal() % this->second->getVal() << endl;
+	// 	this->setVal(this->first->getVal() % this->second->getVal());
+	// } 
 	enum ExprType type = binary;
 	this->etype = type;	
 }
@@ -730,7 +731,15 @@ void PrintStatement::traverse()
 {
 	printTabs();
 	cout << "<print_stmnt>" << endl;
-
+	if(this->assigned){
+		tabs_needed++;
+		for(int i = 0; i < this->lhss->lhs_list.size(); i++) {
+			this->lhss->lhs_list[i]->traverse();
+		}
+		tabs_needed--;
+	}
+	else
+		this->var->traverse();
 	printTabs();
 	cout << "</print_stmnt>" << endl;
 }
@@ -903,7 +912,7 @@ int WhileStatement::interpret()
 
 int PrintLnStatement::interpret()
 {
-	cout << this->text;
+	cout << this->text << endl;
 	return 0;
 }
 
@@ -917,11 +926,11 @@ int PrintStatement::interpret()
 	if(this->assigned){
 		cout << this->text;
 		for(int i = 0; i < this->lhss->lhs_list.size(); i++) {
-			cout << this->lhss->lhs_list[i]->interpret();
+			cout << this->lhss->lhs_list[i]->interpret() << endl;
 		}
 	}
 	else
-		cout << this->var->interpret();
+		cout << this->var->interpret() << endl;
 	return 0;
 }
 
