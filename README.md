@@ -10,6 +10,6 @@ Compiler for Flat-B Programming Language
 
 ### Execute the code
 ``` 
-./run.sh <input_file 
+./run.sh <input_file>
 ``` 
 to run the code
